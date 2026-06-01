@@ -74,6 +74,9 @@ function goHome() {
     startSession(false);
   });
 
+  const btnAnalytics = document.getElementById('btn-analytics');
+  if (btnAnalytics) btnAnalytics.addEventListener('click', goAnalytics);
+
   const resumeBtn = document.getElementById('btn-resume-session');
   if (resumeBtn) {
     resumeBtn.addEventListener('click', () => {
@@ -467,9 +470,6 @@ function bindReviewButton() {
       renderCurrentQuestion();
     });
   }
-
-  const btnAnalytics = document.getElementById('btn-analytics');
-  if (btnAnalytics) btnAnalytics.addEventListener('click', goAnalytics);
 }
 
 // Avvio
