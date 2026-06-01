@@ -303,9 +303,6 @@ function renderCurrentQuestion() {
   
   const q = appState.questions[appState.currentIndex];
   
-  // Aggiungi ai "visti"
-  storage.addSeenQuestions([q.id]);
-  
   let timerHtml = '';
   if (appState.mode === 'exam') {
     timerHtml = `<div id="timer-display">${formatTime(appState.timeRemaining)}</div>`;
@@ -378,6 +375,9 @@ function handleAnswer(selectedIdx) {
   } else {
     storage.addWrongQuestion(q.id);
   }
+  
+  // Marca la domanda come vista SOLO quando viene effettivamente data una risposta
+  storage.addSeenQuestions([q.id]);
 
   saveCurrentSession(); // Autosalvataggio dopo la risposta
 
