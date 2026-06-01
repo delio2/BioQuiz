@@ -1,33 +1,50 @@
-const CACHE_NAME = 'bioquiz-v1';
+const CACHE_NAME = 'bioquiz-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/quizLogic.js',
-  '/js/storage.js',
-  '/js/ui.js',
-  '/js/defaultQuestions.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/quizLogic.js',
+  './js/storage.js',
+  './js/ui.js',
+  './js/defaultQuestions.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Forza il nuovo SW ad attivarsi subito
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('activate', event => {
+  // Pulisce le vecchie cache
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
 self.addEventListener('fetch', event => {
+  // Strategia: Network First, Fallback to Cache
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) {
-          return response;
+        if (response && response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
         }
-        return fetch(event.request);
+        return response;
       })
+      .catch(() => caches.match(event.request))
   );
 });
