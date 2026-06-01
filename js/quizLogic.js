@@ -34,6 +34,18 @@ export const quizLogic = {
     }));
   },
 
+  // Rimescola l'ordine delle opzioni e aggiorna l'indice della risposta corretta
+  _shuffleOptions(questionsArray) {
+    return questionsArray.map(q => {
+      const qCopy = { ...q };
+      const optionsWithStatus = q.opzioni.map((opt, idx) => ({ text: opt, isCorrect: idx === q.rispostaCorretta }));
+      this.shuffle(optionsWithStatus);
+      qCopy.opzioni = optionsWithStatus.map(o => o.text);
+      qCopy.rispostaCorretta = optionsWithStatus.findIndex(o => o.isCorrect);
+      return qCopy;
+    });
+  },
+
   getQuestionsForStudy(config) {
     let pool = allQuestions;
 
@@ -50,22 +62,28 @@ export const quizLogic = {
       }
     }
 
-    // Shuffle and slice
-    pool = this.shuffle(pool);
+    let selected = [...pool];
+    this.shuffle(selected);
     if (config.count && config.count !== 'all') {
-      pool = pool.slice(0, parseInt(config.count));
+      selected = selected.slice(0, parseInt(config.count));
     }
-    return pool;
+    
+    return this._shuffleOptions(selected);
   },
 
   generateExam() {
-    // 3 moduli, 12 domande per modulo
-    const m1 = this.shuffle(allQuestions.filter(q => q.modulo === 1)).slice(0, 12);
-    const m2 = this.shuffle(allQuestions.filter(q => q.modulo === 2)).slice(0, 12);
-    const m3 = this.shuffle(allQuestions.filter(q => q.modulo === 3)).slice(0, 12);
+    const m1 = allQuestions.filter(q => q.modulo === 1);
+    const m2 = allQuestions.filter(q => q.modulo === 2);
+    const m3 = allQuestions.filter(q => q.modulo === 3);
 
-    // Se non ci sono abbastanza domande nei moduli (es. database piccolo), prendiamo quello che c'è
-    return [...m1, ...m2, ...m3];
+    this.shuffle(m1);
+    this.shuffle(m2);
+    this.shuffle(m3);
+
+    const examQuestions = [...m1.slice(0, 12), ...m2.slice(0, 12), ...m3.slice(0, 12)];
+    this.shuffle(examQuestions); // Mescola moduli
+
+    return this._shuffleOptions(examQuestions);
   },
 
   calculateExamResults(answers, totalQuestionsInExam = 36) {
