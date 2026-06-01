@@ -26,6 +26,9 @@ Tutte le modifiche al progetto verranno documentate in questo file.
 - Inizio del progetto: configurazione iniziale per la Quiz App in Vanilla JS.
 - Creazione della struttura di directory base.
 ## [Unreleased]
+- **Nuova Funzionalità (Statistiche Avanzate)**: Aggiunta una dashboard analitica che utilizza `Chart.js` per visualizzare:
+  - **Andamento Esami**: Grafico a linee che traccia l'evoluzione del voto (su 31) nel tempo.
+  - **Punti Deboli**: Grafico a barre che mostra la percentuale di risposte esatte suddivise per ogni singolo PDF, permettendo uno studio più mirato. Le aree critiche (< 60%) vengono evidenziate in rosso.
 - **Audit Completo (Senior Developer)**: Eseguita un'analisi e risoluzione profonda di sicurezza, accessibilità e prestazioni.
   - **Sicurezza (XSS)**: Implementata la funzione `escapeHTML` globale per prevenire iniezioni di script (Client-Side XSS) tramite JSON malevoli.
   - **Accessibilità (A11y)**: Adeguato il contrasto dei colori di successo ed errore agli standard WCAG AA e implementati stili di focus da tastiera globali (`:focus-visible`). Aggiunte etichette form mancanti.

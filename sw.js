@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bioquiz-v12';
+const CACHE_NAME = 'bioquiz-v13';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,7 +10,8 @@ const urlsToCache = [
   './js/defaultQuestions.js',
   './manifest.json',
   './icons/icon-192x192.png',
-  './icons/icon-512x512.png'
+  './icons/icon-512x512.png',
+  'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
 self.addEventListener('install', (e) => {

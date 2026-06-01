@@ -5,6 +5,8 @@ const STORAGE_KEY_SEEN = 'bioquiz_seen_questions';
 const STORAGE_KEY_CUSTOM_JSON = 'bioquiz_custom_json';
 const STORAGE_KEY_SESSION = 'bioquiz_session';
 const STORAGE_KEY_THEME = 'bioquiz_theme';
+const STORAGE_KEY_EXAM_HISTORY = 'bioquiz_exam_history';
+const STORAGE_KEY_PDF_STATS = 'bioquiz_pdf_stats';
 
 export const storage = {
   getStats() {
@@ -29,6 +31,34 @@ export const storage = {
     }
     stats.totalStudyQuestions += studyQuestionsCount;
     this.saveStats(stats);
+  },
+
+  getExamHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_EXAM_HISTORY)) || []; } catch { return []; }
+  },
+  addExamToHistory(examData) {
+    const history = this.getExamHistory();
+    history.push({
+      date: new Date().toISOString(),
+      ...examData
+    });
+    try { localStorage.setItem(STORAGE_KEY_EXAM_HISTORY, JSON.stringify(history)); } catch (e) { console.warn(e); }
+  },
+
+  getPdfStats() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PDF_STATS)) || {}; } catch { return {}; }
+  },
+  updatePdfStat(pdfName, isCorrect) {
+    if (!pdfName) return;
+    const stats = this.getPdfStats();
+    if (!stats[pdfName]) {
+      stats[pdfName] = { correct: 0, wrong: 0, total: 0 };
+    }
+    stats[pdfName].total++;
+    if (isCorrect) stats[pdfName].correct++;
+    else stats[pdfName].wrong++;
+    
+    try { localStorage.setItem(STORAGE_KEY_PDF_STATS, JSON.stringify(stats)); } catch(e) { console.warn(e); }
   },
 
   getWrongQuestions() {
@@ -100,5 +130,7 @@ export const storage = {
     localStorage.removeItem(STORAGE_KEY_SEEN);
     localStorage.removeItem(STORAGE_KEY_CUSTOM_JSON);
     localStorage.removeItem(STORAGE_KEY_SESSION);
+    localStorage.removeItem(STORAGE_KEY_EXAM_HISTORY);
+    localStorage.removeItem(STORAGE_KEY_PDF_STATS);
   }
 };

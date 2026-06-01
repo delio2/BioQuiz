@@ -49,11 +49,13 @@ export const ui = {
         <button id="btn-start-exam" class="btn-primary mb-20">🎯 Simulazione Esame</button>
         <button id="btn-start-study" class="btn-secondary mb-20">📚 Allenamento Mirato</button>
         <button id="btn-start-unseen" class="btn-secondary mb-20">🔎 Domande Mai Viste</button>
-        <button id="btn-review-wrong" class="btn-secondary">⚠️ Ripasso Errori</button>
+        <button id="btn-review-wrong" class="btn-secondary mb-20">⚠️ Ripasso Errori</button>
+        <button id="btn-analytics" class="btn-secondary" style="width: 100%;">📊 Statistiche Avanzate</button>
       </div>
     `;
     this.render(html);
   },
+
 
   showStudyConfig(pps) {
     let ppCheckboxes = pps.map(p => `
@@ -258,5 +260,145 @@ export const ui = {
       </div>
     `;
     this.render(html);
+  },
+
+  showAnalyticsDashboard(examHistory, pdfStats) {
+    let historyHtml = '';
+    let pdfStatsHtml = '';
+
+    if (examHistory.length === 0 && Object.keys(pdfStats).length === 0) {
+      historyHtml = '<p class="text-muted text-center" style="margin-top:40px;">Nessuna statistica disponibile. Completa una simulazione d\'esame o studia per iniziare a raccogliere dati.</p>';
+    } else {
+      historyHtml = `
+        <div class="card">
+          <h2 style="font-size: 18px; margin-bottom: 15px;">Andamento Esami</h2>
+          <canvas id="examHistoryChart" height="200"></canvas>
+        </div>
+      `;
+      
+      pdfStatsHtml = `
+        <div class="card mt-20">
+          <h2 style="font-size: 18px; margin-bottom: 15px;">Punti Deboli (per PDF)</h2>
+          <p class="text-muted" style="font-size: 13px; margin-bottom: 15px;">Visualizza la percentuale di risposte esatte per ogni modulo/PDF. Le barre rosse (< 60%) indicano gli argomenti da ripassare.</p>
+          <canvas id="pdfStatsChart" height="280"></canvas>
+        </div>
+      `;
+    }
+
+    const html = `
+      <div class="card" style="text-align: center;">
+        <h2 style="font-size: 24px; margin-bottom: 5px;">Statistiche Avanzate</h2>
+        <p class="text-muted" style="margin-bottom: 0;">Analizza le tue performance nel tempo.</p>
+      </div>
+      
+      ${historyHtml}
+      ${pdfStatsHtml}
+    `;
+    
+    this.render(html);
+    
+    // Inizializza i grafici
+    if (examHistory.length > 0 || Object.keys(pdfStats).length > 0) {
+      setTimeout(() => this.initCharts(examHistory, pdfStats), 100);
+    }
+  },
+
+  initCharts(examHistory, pdfStats) {
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js non è stato caricato correttamente.');
+      return;
+    }
+
+    // Colori in base al tema
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#ffffff' : '#0f172a';
+    const gridColor = isDark ? '#333333' : '#e2e8f0';
+
+    // 1. Line Chart: Andamento Esami
+    const ctxHistory = document.getElementById('examHistoryChart');
+    if (ctxHistory && examHistory.length > 0) {
+      const labels = examHistory.map((ex, i) => {
+        const d = new Date(ex.date);
+        return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' (#' + (i+1) + ')';
+      });
+      const data = examHistory.map(ex => ex.finalGrade30);
+      
+      new Chart(ctxHistory, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Voto (su 31)',
+            data: data,
+            borderColor: '#059669', // success color
+            backgroundColor: 'rgba(5, 150, 105, 0.2)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointBackgroundColor: '#059669'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 0, max: 31, grid: { color: gridColor }, ticks: { color: textColor } },
+            x: { grid: { color: gridColor }, ticks: { color: textColor, maxRotation: 45, minRotation: 45 } }
+          }
+        }
+      });
+    }
+
+    // 2. Bar Chart: Punti deboli per PDF
+    const ctxPdf = document.getElementById('pdfStatsChart');
+    if (ctxPdf && Object.keys(pdfStats).length > 0) {
+      const pdfNames = Object.keys(pdfStats);
+      
+      // Ordina i PDF in base alla percentuale (dal peggiore al migliore)
+      const sortedStats = pdfNames.map(name => {
+        const s = pdfStats[name];
+        return {
+          name: name,
+          percentage: Math.round((s.correct / s.total) * 100),
+          correct: s.correct,
+          total: s.total
+        };
+      }).sort((a, b) => a.percentage - b.percentage);
+
+      const labels = sortedStats.map(s => s.name.replace('.pdf', '').substring(0, 18) + (s.name.length > 18 ? '...' : ''));
+      const percentages = sortedStats.map(s => s.percentage);
+      const bgColors = percentages.map(p => p < 60 ? 'rgba(220, 38, 38, 0.8)' : 'rgba(5, 150, 105, 0.8)');
+
+      new Chart(ctxPdf, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '% Accuratezza',
+            data: percentages,
+            backgroundColor: bgColors,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const s = sortedStats[ctx.dataIndex];
+                  return `${s.percentage}% (${s.correct} esatte su ${s.total})`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { color: textColor } },
+            x: { grid: { display: false }, ticks: { color: textColor } }
+          }
+        }
+      });
+    }
   }
 };

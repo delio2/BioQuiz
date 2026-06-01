@@ -140,6 +140,17 @@ function goSettings() {
   });
 }
 
+function goAnalytics() {
+  stopTimer();
+  appState.currentView = 'analytics';
+  const history = storage.getExamHistory();
+  const pdfStats = storage.getPdfStats();
+  ui.showAnalyticsDashboard(history, pdfStats);
+  
+  document.getElementById('btn-back-nav').style.display = 'block';
+  document.getElementById('btn-back-nav').onclick = goHome;
+}
+
 function goStudyConfig() {
   appState.currentView = 'studyConfig';
   document.getElementById('btn-back-nav').style.display = 'block';
@@ -361,8 +372,10 @@ function renderCurrentQuestion() {
 
 function handleAnswer(selectedIdx) {
   const q = appState.questions[appState.currentIndex];
-  const isCorrect = selectedIdx === q.rispostaCorretta;
+  const isCorrect = (selectedIdx === q.rispostaCorretta);
   
+  storage.updatePdfStat(q.pdf_origine, isCorrect);
+
   appState.answers[appState.currentIndex] = {
     questionId: q.id,
     selectedIndex: selectedIdx,
@@ -416,6 +429,13 @@ function finishSession() {
   if (appState.mode === 'exam') {
     const stats = quizLogic.calculateExamResults(appState.answers, appState.questions.length);
     storage.updateStats(stats.passed, appState.questions.length);
+    
+    storage.addExamToHistory({
+      finalGrade30: stats.finalGrade30,
+      passed: stats.passed,
+      totalScore: stats.totalScore
+    });
+
     appState.currentView = 'examResults';
     appState.lastStats = stats;
   } else {
@@ -447,6 +467,9 @@ function bindReviewButton() {
       renderCurrentQuestion();
     });
   }
+
+  const btnAnalytics = document.getElementById('btn-analytics');
+  if (btnAnalytics) btnAnalytics.addEventListener('click', goAnalytics);
 }
 
 // Avvio
