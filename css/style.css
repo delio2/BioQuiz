@@ -248,6 +248,8 @@ select, input[type="file"], input[type="number"] {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 90%;
+  max-width: 400px;
 }
 .toast {
   background: var(--text-primary);
@@ -259,6 +261,8 @@ select, input[type="file"], input[type="number"] {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   animation: slideUp 0.3s ease-out, fadeOut 0.3s ease-out 2.7s forwards;
   text-align: center;
+  width: 100%;
+  word-wrap: break-word;
 }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeOut { to { opacity: 0; } }

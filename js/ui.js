@@ -90,7 +90,7 @@ export const ui = {
       <button class="quiz-option" data-index="${i}">${opt}</button>
     `).join('');
 
-    const skipBtn = isExam ? `<button id="btn-skip" class="btn-secondary" style="margin-top: 15px; width: auto; font-size: 14px; padding: 10px 15px;">⏭️ Salta Domanda</button>` : '';
+    const skipBtn = isExam ? `<button id="btn-skip" class="btn-secondary" style="margin-top: 15px; width: 100%; font-size: 15px; padding: 14px;">⏭️ Salta Domanda</button>` : '';
 
     const headerContext = isExam ? 
       `<span>Modulo ${question.modulo}</span>` : 
