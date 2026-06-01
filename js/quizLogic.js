@@ -100,6 +100,12 @@ export const quizLogic = {
       if (ans.module === 3) stats.m3Score += points;
     });
 
+    // Arrotondamento per prevenire i classici errori in virgola mobile di JavaScript (es. 5.600000001)
+    stats.totalScore = Math.round(stats.totalScore * 100) / 100;
+    stats.m1Score = Math.round(stats.m1Score * 100) / 100;
+    stats.m2Score = Math.round(stats.m2Score * 100) / 100;
+    stats.m3Score = Math.round(stats.m3Score * 100) / 100;
+
     // Limit score not to go below zero theoretically for final display
     stats.totalScore = Math.max(0, stats.totalScore);
 

@@ -159,6 +159,9 @@ p.text-muted {
   color: var(--text-primary);
   font-size: 16px;
   transition: all 0.2s ease;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 .quiz-option:hover {

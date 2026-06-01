@@ -7,7 +7,7 @@ const urlsToCache = [
   '/js/quizLogic.js',
   '/js/storage.js',
   '/js/ui.js',
-  '/data/questions.json',
+  '/js/defaultQuestions.js',
   '/manifest.json'
 ];
 
