@@ -17,14 +17,15 @@ export const ui = {
     }, 3000);
   },
 
-  showHome(stats, hasActiveSession) {
+  showHome(stats, hasActiveSession, totalDbQuestions = 0) {
     const sessionBtn = hasActiveSession ? 
       `<button id="btn-resume-session" class="btn-primary mb-20" style="background: var(--success-color);">🔄 Riprendi Sessione in Corso</button>` : '';
 
     const html = `
       <div class="card text-center">
         <h2>Benvenuta Rosa! 🌸</h2>
-        <p class="text-muted">Pronta per l'esame di biochimica?</p>
+        <p class="text-muted" style="margin-bottom: 5px;">Pronta per l'esame di biochimica?</p>
+        <p class="text-muted" style="font-size: 13px;">Banca dati attiva: <strong>${totalDbQuestions}</strong> domande totali.</p>
         
         <div class="grid-2 mt-20">
           <div class="stat-box">
@@ -50,8 +51,11 @@ export const ui = {
   showStudyConfig(pps) {
     let ppCheckboxes = pps.map(p => `
       <label class="checkbox-label">
-        <input type="checkbox" value="${p}" class="pdf-checkbox">
-        ${p}
+        <input type="checkbox" value="${p.name}" class="pdf-checkbox">
+        <span style="display: flex; justify-content: space-between; width: 100%;">
+          <span>${p.name}</span>
+          <span style="color: var(--text-secondary); font-size: 13px;">(${p.count} dom.)</span>
+        </span>
       </label>
     `).join('');
 

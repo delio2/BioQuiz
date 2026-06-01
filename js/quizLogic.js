@@ -22,11 +22,16 @@ export const quizLogic = {
   },
 
   getPdfs() {
-    const pps = new Set();
+    const pdfCounts = {};
     allQuestions.forEach(q => {
-      if (q.pdf_origine) pps.add(q.pdf_origine);
+      if (q.pdf_origine) {
+        pdfCounts[q.pdf_origine] = (pdfCounts[q.pdf_origine] || 0) + 1;
+      }
     });
-    return Array.from(pps).sort();
+    return Object.keys(pdfCounts).sort().map(name => ({
+      name: name,
+      count: pdfCounts[name]
+    }));
   },
 
   getQuestionsForStudy(config) {

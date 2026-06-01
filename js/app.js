@@ -43,7 +43,8 @@ function goHome() {
   
   const stats = storage.getStats();
   const session = storage.getSessionState();
-  ui.showHome(stats, session !== null);
+  const totalDbQuestions = quizLogic.getAllQuestions().length;
+  ui.showHome(stats, session !== null, totalDbQuestions);
   
   document.getElementById('btn-start-exam').addEventListener('click', () => startExam());
   document.getElementById('btn-start-study').addEventListener('click', goStudyConfig);
