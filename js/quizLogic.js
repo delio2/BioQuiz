@@ -63,27 +63,28 @@ export const quizLogic = {
     return [...m1, ...m2, ...m3];
   },
 
-  calculateExamResults(answers) {
-    // answers è un array di oggetti: { questionId: "q_001", selectedIndex: 1, correctIndex: 1, module: 1 }
-    // Unanswered avrà selectedIndex = null
-    let stats = {
+  calculateExamResults(answers, totalQuestionsInExam = 36) {
+    const stats = {
       totalScore: 0,
-      unanswered: 0,
       m1Score: 0, m2Score: 0, m3Score: 0,
-      finalGrade30: 0,
+      m1Passed: false, m2Passed: false, m3Passed: false,
       passed: false,
-      m1Passed: false, m2Passed: false, m3Passed: false
+      finalGrade30: 0,
+      unanswered: 0
     };
+
+    // Calculate unanswered based on what's missing or marked as null
+    const actuallyAnsweredCount = answers.filter(a => a.selectedIndex !== null && a.selectedIndex !== undefined).length;
+    stats.unanswered = totalQuestionsInExam - actuallyAnsweredCount;
 
     const MOD1_PASS = 5.6;
     const MOD2_PASS = 5.6;
     const MOD3_PASS = 5.6;
-    const TOTAL_MAX = 28.8;
 
     answers.forEach(ans => {
       let points = 0;
       if (ans.selectedIndex === null || ans.selectedIndex === undefined) {
-        stats.unanswered++;
+        // Already tallied in stats.unanswered, 0 points
       } else if (ans.selectedIndex === ans.correctIndex) {
         points = 0.8;
       } else {
@@ -105,17 +106,20 @@ export const quizLogic = {
     // Limit score not to go below zero theoretically for final display
     stats.totalScore = Math.max(0, stats.totalScore);
 
-    // Conversione in 30esimi (31 = 30 e lode)
+    // Calculate max possible points based on the actual number of questions generated
+    const TOTAL_MAX = Math.max(1, totalQuestionsInExam * 0.8);
+
     stats.finalGrade30 = Math.round((stats.totalScore / TOTAL_MAX) * 31 * 10) / 10;
+    
+    // Limits
+    if (stats.finalGrade30 > 31) stats.finalGrade30 = 31;
+    if (stats.finalGrade30 < 0) stats.finalGrade30 = 0;
 
     stats.m1Passed = stats.m1Score >= MOD1_PASS;
     stats.m2Passed = stats.m2Score >= MOD2_PASS;
     stats.m3Passed = stats.m3Score >= MOD3_PASS;
 
-    // Regola delle mancate risposte (max 4 per passare l'esame vero e proprio)
-    const withinUnansweredLimit = stats.unanswered <= 4;
-
-    stats.passed = stats.m1Passed && stats.m2Passed && stats.m3Passed && withinUnansweredLimit && stats.finalGrade30 >= 18;
+    stats.passed = stats.m1Passed && stats.m2Passed && stats.m3Passed && stats.unanswered <= 4 && stats.finalGrade30 >= 18;
 
     return stats;
   },

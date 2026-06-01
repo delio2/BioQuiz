@@ -3,6 +3,14 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Audit Fixes (Performance, Logic & UI)**:
+  - Risolto bug logico critico: il voto viene ora calcolato in base al numero reale di domande pescate se il DB è incompleto.
+  - Fixato problema del Timer su iOS/Mobile: ora usa `Date.now()` per evitare desincronizzazioni in background.
+  - Aggiunto tasto "Salta Domanda" per gestire correttamente le risposte "omesse" all'esame.
+  - Risolto "Race Condition" che permetteva di rispondere 2 volte premendo velocemente due tasti.
+  - Ottimizzazione Performance: disabilitato il salvataggio pesante dell'intera sessione ad ogni tick del timer, salvando solo i secondi rimanenti.
+  - Risolti problemi di layout (testi lunghi dei PDF uscivano dallo schermo).
+  - Rimossi gli `alert()` nativi bloccanti e sostituito tutto con un sistema di Notifiche "Toast" non intrusivo.
 - **Major Update - Funzionalità Avanzate**:
   - Implementato restyling UI minimalista stile Apple (flat design, niente glassmorphism).
   - Aggiunta modalità Dark/Light selezionabile nelle impostazioni.

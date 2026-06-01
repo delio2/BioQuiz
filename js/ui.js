@@ -5,6 +5,18 @@ export const ui = {
     this.container.innerHTML = html;
   },
 
+  showToast(message) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+  },
+
   showHome(stats, hasActiveSession) {
     const sessionBtn = hasActiveSession ? 
       `<button id="btn-resume-session" class="btn-primary mb-20" style="background: var(--success-color);">🔄 Riprendi Sessione in Corso</button>` : '';
@@ -74,13 +86,15 @@ export const ui = {
   showQuizSession(question, currentIndex, total, isExam, timerHtml = '') {
     const progress = ((currentIndex) / total) * 100;
     
-    let optionsHtml = question.opzioni.map((opt, i) => `
+    const optionsHtml = question.opzioni.map((opt, i) => `
       <button class="quiz-option" data-index="${i}">${opt}</button>
     `).join('');
 
+    const skipBtn = isExam ? `<button id="btn-skip" class="btn-secondary" style="margin-top: 15px; width: auto; font-size: 14px; padding: 10px 15px;">⏭️ Salta Domanda</button>` : '';
+
     const headerContext = isExam ? 
       `<span>Modulo ${question.modulo}</span>` : 
-      `<span style="text-align: right; font-size: 13px; max-width: 60%;">${question.pdf_origine || ''}</span>`;
+      `<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">${question.pdf_origine || ''}</span>`;
 
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -91,8 +105,8 @@ export const ui = {
       </div>
       
       <div class="card" style="margin-top: 15px;">
-        <div class="text-muted" style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom: 1px solid var(--surface-border); padding-bottom: 10px;">
-          <span>Domanda ${currentIndex + 1} di ${total}</span>
+        <div class="text-muted" style="display:flex; justify-content:space-between; flex-wrap: nowrap; margin-bottom:15px; border-bottom: 1px solid var(--surface-border); padding-bottom: 10px;">
+          <span style="flex-shrink: 0; margin-right: 10px;">Domanda ${currentIndex + 1} di ${total}</span>
           ${headerContext}
         </div>
         
@@ -100,6 +114,7 @@ export const ui = {
         
         <div id="options-container">
           ${optionsHtml}
+          ${skipBtn}
         </div>
         
         <div id="feedback-container" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">

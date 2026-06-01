@@ -19,7 +19,7 @@ async function initApp() {
 
   const loaded = await quizLogic.init();
   if (!loaded) {
-    alert("Errore critico: impossibile caricare il database delle domande.");
+    ui.showToast("Errore critico: impossibile caricare il database delle domande.");
     return;
   }
   
@@ -51,7 +51,7 @@ function goHome() {
     appState.mode = 'unseen';
     appState.questions = quizLogic.getQuestionsForStudy({ mode: 'unseen' });
     if (appState.questions.length === 0) {
-      alert("Hai già visto tutte le domande del database! Complimenti!");
+      ui.showToast("Hai già visto tutte le domande del database! Complimenti!");
       return;
     }
     startSession(false);
@@ -59,7 +59,7 @@ function goHome() {
   document.getElementById('btn-review-wrong').addEventListener('click', () => {
     const wrongIds = storage.getWrongQuestions();
     if (wrongIds.length === 0) {
-      alert("Non hai ancora sbagliato nessuna domanda! Ottimo lavoro!");
+      ui.showToast("Non hai ancora sbagliato nessuna domanda! Ottimo lavoro!");
       return;
     }
     appState.mode = 'wrong';
@@ -112,16 +112,16 @@ function goSettings() {
             const success = storage.saveCustomJson(json);
             if (success) {
               await quizLogic.init();
-              alert("Database aggiornato con successo!");
+              ui.showToast("Database aggiornato con successo!");
               goSettings();
             } else {
-              alert("Il file è troppo grande per la memoria del browser.");
+              ui.showToast("Il file è troppo grande per la memoria del browser.");
             }
           } else {
-            alert("Formato JSON non valido. Deve essere un array di domande.");
+            ui.showToast("Formato JSON non valido. Deve essere un array di domande.");
           }
         } catch (err) {
-          alert("Errore nella lettura del file JSON.");
+          ui.showToast("Errore nella lettura del file JSON.");
         }
       };
       reader.readAsText(file);
@@ -155,7 +155,7 @@ function goStudyConfig() {
     const selectedPdfs = checkAll.checked ? ['all'] : Array.from(pdfCheckboxes).filter(c => c.checked).map(c => c.value);
     
     if (selectedPdfs.length === 0 && !checkAll.checked) {
-      alert("Seleziona almeno un PDF!");
+      ui.showToast("Seleziona almeno un PDF!");
       return;
     }
 
@@ -168,7 +168,7 @@ function goStudyConfig() {
     appState.mode = 'study';
     appState.questions = quizLogic.getQuestionsForStudy(config);
     if (appState.questions.length === 0) {
-      alert("Nessuna domanda trovata in questi PDF.");
+      ui.showToast("Nessuna domanda trovata in questi PDF.");
       return;
     }
     startSession(false);
@@ -179,7 +179,7 @@ function startExam() {
   appState.mode = 'exam';
   appState.questions = quizLogic.generateExam();
   if (appState.questions.length < 36) {
-    alert(`Attenzione: nel database ci sono solo ${appState.questions.length} domande. L'esame potrebbe non essere completo.`);
+    ui.showToast(`Attenzione: nel database ci sono solo ${appState.questions.length} domande. L'esame potrebbe non essere completo.`);
   }
   startSession(true);
 }
@@ -231,21 +231,34 @@ function saveCurrentSession() {
   });
 }
 
+function saveCurrentTimerOnly() {
+  const session = storage.getSessionState();
+  if (session) {
+    session.timeRemaining = appState.timeRemaining;
+    storage.saveSessionState(session);
+  }
+}
+
 function startTimer() {
   stopTimer();
+  const endTime = Date.now() + (appState.timeRemaining * 1000);
+
   appState.timerInterval = setInterval(() => {
-    appState.timeRemaining--;
+    appState.timeRemaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    
     const display = document.getElementById('timer-display');
     if (display) {
       display.textContent = formatTime(appState.timeRemaining);
     }
     
-    // Save timer periodically (every 5 seconds)
-    if (appState.timeRemaining % 5 === 0) saveCurrentSession();
+    // Save timer periodically (every 5 seconds) without blocking main thread heavily
+    if (appState.timeRemaining > 0 && appState.timeRemaining % 5 === 0) {
+      saveCurrentTimerOnly();
+    }
     
     if (appState.timeRemaining <= 0) {
       stopTimer();
-      alert("Tempo Scaduto!");
+      ui.showToast("Tempo Scaduto!");
       finishSession();
     }
   }, 1000);
@@ -262,6 +275,8 @@ function formatTime(seconds) {
 }
 
 function renderCurrentQuestion() {
+  appState.isAnswering = false;
+
   if (appState.currentIndex >= appState.questions.length) {
     finishSession();
     return;
@@ -282,11 +297,31 @@ function renderCurrentQuestion() {
   const options = document.querySelectorAll('.quiz-option');
   options.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      if (!document.getElementById('feedback-container').classList.contains('hidden')) return;
+      if (appState.isAnswering) return;
+      appState.isAnswering = true;
       const selectedIdx = parseInt(e.target.dataset.index);
       handleAnswer(selectedIdx);
     });
   });
+
+  const skipBtn = document.getElementById('btn-skip');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      if (appState.isAnswering) return;
+      appState.isAnswering = true;
+      
+      appState.answers.push({
+        questionId: q.id,
+        selectedIndex: null,
+        correctIndex: q.rispostaCorretta,
+        module: q.modulo
+      });
+      
+      appState.currentIndex++;
+      saveCurrentSession();
+      renderCurrentQuestion();
+    });
+  }
 
   document.getElementById('btn-next-question').addEventListener('click', () => {
     appState.currentIndex++;
@@ -346,7 +381,7 @@ function finishSession() {
   document.getElementById('btn-back-nav').style.display = 'none';
 
   if (appState.mode === 'exam') {
-    const stats = quizLogic.calculateExamResults(appState.answers);
+    const stats = quizLogic.calculateExamResults(appState.answers, appState.questions.length);
     storage.updateStats(stats.passed, appState.questions.length);
     appState.currentView = 'examResults';
     ui.showExamResults(stats);
