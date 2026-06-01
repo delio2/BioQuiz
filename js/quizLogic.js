@@ -21,17 +21,12 @@ export const quizLogic = {
     return allQuestions;
   },
 
-  getTopicsAndPps() {
-    const topics = new Set();
+  getPdfs() {
     const pps = new Set();
     allQuestions.forEach(q => {
-      if (q.argomento) topics.add(q.argomento);
-      if (q.powerpoint) pps.add(q.powerpoint);
+      if (q.pdf_origine) pps.add(q.pdf_origine);
     });
-    return {
-      topics: Array.from(topics).sort(),
-      pps: Array.from(pps).sort()
-    };
+    return Array.from(pps).sort();
   },
 
   getQuestionsForStudy(config) {
@@ -40,12 +35,13 @@ export const quizLogic = {
     if (config.mode === 'wrong') {
       const wrongIds = storage.getWrongQuestions();
       pool = allQuestions.filter(q => wrongIds.includes(q.id));
+    } else if (config.mode === 'unseen') {
+      const seenIds = storage.getSeenQuestions();
+      pool = allQuestions.filter(q => !seenIds.includes(q.id));
     } else {
-      if (config.topic && config.topic !== 'all') {
-        pool = pool.filter(q => q.argomento === config.topic);
-      }
-      if (config.pp && config.pp !== 'all') {
-        pool = pool.filter(q => q.powerpoint === config.pp);
+      // config.pdfs is an array of pdf names. If empty or includes 'all', ignore filter.
+      if (config.pdfs && config.pdfs.length > 0 && !config.pdfs.includes('all')) {
+        pool = pool.filter(q => config.pdfs.includes(q.pdf_origine));
       }
     }
 

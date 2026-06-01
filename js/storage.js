@@ -1,7 +1,10 @@
 // Gestione Storage locale
 const STORAGE_KEY_STATS = 'bioquiz_stats';
 const STORAGE_KEY_WRONG = 'bioquiz_wrong_questions';
+const STORAGE_KEY_SEEN = 'bioquiz_seen_questions';
 const STORAGE_KEY_CUSTOM_JSON = 'bioquiz_custom_json';
+const STORAGE_KEY_SESSION = 'bioquiz_session';
+const STORAGE_KEY_THEME = 'bioquiz_theme';
 
 export const storage = {
   getStats() {
@@ -29,50 +32,65 @@ export const storage = {
   },
 
   getWrongQuestions() {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_WRONG);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_WRONG)) || []; } catch { return []; }
   },
-
   addWrongQuestion(questionId) {
-    const wrongList = this.getWrongQuestions();
-    if (!wrongList.includes(questionId)) {
-      wrongList.push(questionId);
-      localStorage.setItem(STORAGE_KEY_WRONG, JSON.stringify(wrongList));
+    const list = this.getWrongQuestions();
+    if (!list.includes(questionId)) {
+      list.push(questionId);
+      localStorage.setItem(STORAGE_KEY_WRONG, JSON.stringify(list));
     }
   },
-
   removeWrongQuestion(questionId) {
-    let wrongList = this.getWrongQuestions();
-    wrongList = wrongList.filter(id => id !== questionId);
-    localStorage.setItem(STORAGE_KEY_WRONG, JSON.stringify(wrongList));
+    let list = this.getWrongQuestions();
+    list = list.filter(id => id !== questionId);
+    localStorage.setItem(STORAGE_KEY_WRONG, JSON.stringify(list));
+  },
+
+  getSeenQuestions() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SEEN)) || []; } catch { return []; }
+  },
+  addSeenQuestions(questionIdsArr) {
+    const list = new Set(this.getSeenQuestions());
+    questionIdsArr.forEach(id => list.add(id));
+    localStorage.setItem(STORAGE_KEY_SEEN, JSON.stringify(Array.from(list)));
   },
 
   getCustomJson() {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_CUSTOM_JSON);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_CUSTOM_JSON)); } catch { return null; }
   },
-
   saveCustomJson(jsonData) {
     try {
       localStorage.setItem(STORAGE_KEY_CUSTOM_JSON, JSON.stringify(jsonData));
       return true;
     } catch (e) {
-      console.error('Local Storage pieno, impossibile salvare il custom JSON', e);
+      console.error('Local Storage pieno', e);
       return false;
     }
+  },
+
+  getSessionState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION)); } catch { return null; }
+  },
+  saveSessionState(state) {
+    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(state));
+  },
+  clearSessionState() {
+    localStorage.removeItem(STORAGE_KEY_SESSION);
+  },
+
+  getTheme() {
+    return localStorage.getItem(STORAGE_KEY_THEME) || 'light';
+  },
+  setTheme(theme) {
+    localStorage.setItem(STORAGE_KEY_THEME, theme);
   },
 
   resetAll() {
     localStorage.removeItem(STORAGE_KEY_STATS);
     localStorage.removeItem(STORAGE_KEY_WRONG);
+    localStorage.removeItem(STORAGE_KEY_SEEN);
     localStorage.removeItem(STORAGE_KEY_CUSTOM_JSON);
+    localStorage.removeItem(STORAGE_KEY_SESSION);
   }
 };

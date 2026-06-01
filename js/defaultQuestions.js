@@ -2,8 +2,7 @@ export const defaultQuestions = [
   {
     "id": "q_001",
     "modulo": 1,
-    "argomento": "Metabolismo terminale",
-    "powerpoint": "Lezione_03",
+    "pdf_origine": "Lezione_03_Metabolismo_Terminale.pdf",
     "domanda": "Qual è il principale donatore di elettroni nella catena respiratoria?",
     "opzioni": [
       "NADH",
@@ -17,8 +16,7 @@ export const defaultQuestions = [
   {
     "id": "q_002",
     "modulo": 1,
-    "argomento": "Metabolismo glucidico 1",
-    "powerpoint": "Lezione_04",
+    "pdf_origine": "Lezione_04_Metabolismo_Glucidico.pdf",
     "domanda": "Quale enzima catalizza la reazione irreversibile della glicolisi che produce fruttosio-1,6-bisfosfato?",
     "opzioni": [
       "Esochinasi",
@@ -32,8 +30,7 @@ export const defaultQuestions = [
   {
     "id": "q_003",
     "modulo": 2,
-    "argomento": "Metabolismo amminoacidico 1",
-    "powerpoint": "Lezione_08",
+    "pdf_origine": "Lezione_08_Metabolismo_Amminoacidico.pdf",
     "domanda": "Quale di questi amminoacidi è considerato essenziale?",
     "opzioni": [
       "Alanina",
@@ -47,8 +44,7 @@ export const defaultQuestions = [
   {
     "id": "q_004",
     "modulo": 3,
-    "argomento": "Ormoni",
-    "powerpoint": "Lezione_12",
+    "pdf_origine": "Lezione_12_Ormoni.pdf",
     "domanda": "Quale ormone viene rilasciato in risposta ad alti livelli di glucosio nel sangue?",
     "opzioni": [
       "Glucagone",

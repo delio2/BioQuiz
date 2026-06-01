@@ -5,7 +5,10 @@ export const ui = {
     this.container.innerHTML = html;
   },
 
-  showHome(stats) {
+  showHome(stats, hasActiveSession) {
+    const sessionBtn = hasActiveSession ? 
+      `<button id="btn-resume-session" class="btn-primary mb-20" style="background: var(--success-color);">🔄 Riprendi Sessione in Corso</button>` : '';
+
     const html = `
       <div class="card text-center">
         <h2>Benvenuta Rosa! 🌸</h2>
@@ -22,33 +25,39 @@ export const ui = {
           </div>
         </div>
 
+        ${sessionBtn}
         <button id="btn-start-exam" class="btn-primary mb-20">🎯 Simulazione Esame</button>
         <button id="btn-start-study" class="btn-secondary mb-20">📚 Allenamento Mirato</button>
+        <button id="btn-start-unseen" class="btn-secondary mb-20">🔎 Domande Mai Viste</button>
         <button id="btn-review-wrong" class="btn-secondary">⚠️ Ripasso Errori</button>
       </div>
     `;
     this.render(html);
   },
 
-  showStudyConfig(topics, pps) {
-    let topicOpts = topics.map(t => `<option value="${t}">${t}</option>`).join('');
-    let ppOpts = pps.map(p => `<option value="${p}">${p}</option>`).join('');
+  showStudyConfig(pps) {
+    let ppCheckboxes = pps.map(p => `
+      <label class="checkbox-label">
+        <input type="checkbox" value="${p}" class="pdf-checkbox">
+        ${p}
+      </label>
+    `).join('');
 
     const html = `
       <div class="card">
         <h2>Configura Allenamento</h2>
-        <p class="text-muted">Scegli l'argomento su cui vuoi concentrarti.</p>
+        <p class="text-muted">Seleziona i PDF su cui vuoi esercitarti (puoi sceglierne più di uno).</p>
         
-        <select id="config-topic">
-          <option value="all">Tutti gli argomenti</option>
-          ${topicOpts}
-        </select>
+        <div class="checkbox-group">
+          <label class="checkbox-label" style="font-weight: 600; margin-bottom: 5px;">
+            <input type="checkbox" id="check-all-pdfs" value="all" checked>
+            Tutti i PDF
+          </label>
+          <hr style="border:0; border-top:1px solid var(--surface-border); margin:5px 0;">
+          ${ppCheckboxes}
+        </div>
 
-        <select id="config-pp">
-          <option value="all">Tutti i PowerPoint</option>
-          ${ppOpts}
-        </select>
-
+        <p class="text-muted" style="margin: 15px 0 5px 0;">Quante domande vuoi fare?</p>
         <select id="config-count">
           <option value="10">10 Domande</option>
           <option value="20">20 Domande</option>
@@ -56,39 +65,45 @@ export const ui = {
           <option value="all">Tutte le disponibili</option>
         </select>
 
-        <button id="btn-begin-study" class="btn-primary mt-20">Inizia</button>
-        <button id="btn-back" class="btn-secondary mt-20">Indietro</button>
+        <button id="btn-begin-study" class="btn-primary mt-20">Inizia Allenamento</button>
       </div>
     `;
     this.render(html);
   },
 
-  showQuizSession(question, currentIndex, total, isExam) {
+  showQuizSession(question, currentIndex, total, isExam, timerHtml = '') {
     const progress = ((currentIndex) / total) * 100;
     
     let optionsHtml = question.opzioni.map((opt, i) => `
       <button class="quiz-option" data-index="${i}">${opt}</button>
     `).join('');
 
+    const headerContext = isExam ? 
+      `<span>Modulo ${question.modulo}</span>` : 
+      `<span style="text-align: right; font-size: 13px; max-width: 60%;">${question.pdf_origine || ''}</span>`;
+
     const html = `
-      <div class="progress-container">
-        <div class="progress-bar" style="width: ${progress}%"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="progress-container" style="flex: 1; margin-bottom: 0;">
+          <div class="progress-bar" style="width: ${progress}%"></div>
+        </div>
+        ${timerHtml}
       </div>
       
-      <div class="card">
-        <div class="text-muted" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+      <div class="card" style="margin-top: 15px;">
+        <div class="text-muted" style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom: 1px solid var(--surface-border); padding-bottom: 10px;">
           <span>Domanda ${currentIndex + 1} di ${total}</span>
-          ${isExam ? `<span>Modulo ${question.modulo}</span>` : `<span>${question.argomento}</span>`}
+          ${headerContext}
         </div>
         
-        <h2 style="font-size: 22px; margin-bottom: 25px;">${question.domanda}</h2>
+        <h2 style="font-size: 20px; margin-bottom: 25px; line-height: 1.4;">${question.domanda}</h2>
         
         <div id="options-container">
           ${optionsHtml}
         </div>
         
         <div id="feedback-container" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
-          <div id="explanation-text" style="margin-bottom: 20px; font-style: italic;"></div>
+          <div id="explanation-text" style="margin-bottom: 20px; font-style: italic; line-height: 1.5;"></div>
           <button id="btn-next-question" class="btn-primary">Avanti</button>
         </div>
       </div>
@@ -102,26 +117,26 @@ export const ui = {
 
     const html = `
       <div class="card text-center">
-        <h2 style="color: ${passedColor}; font-size: 28px;">${resultMsg}</h2>
+        <h2 style="color: ${passedColor}; font-size: 26px;">${resultMsg}</h2>
         <p class="text-muted">Esito della Simulazione</p>
         
         <div style="font-size: 48px; font-weight: 800; margin: 20px 0; color: ${passedColor};">
           ${stats.finalGrade30.toFixed(1)} <span style="font-size: 20px; color: var(--text-secondary)">/ 31</span>
         </div>
 
-        <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; text-align: left; margin-bottom: 20px;">
+        <div style="background: var(--bg-color); border-radius: 12px; padding: 15px; text-align: left; margin-bottom: 20px; border: 1px solid var(--surface-border);">
           <h3 style="font-size: 16px; margin-bottom: 10px;">Dettaglio Moduli (Min 5.6)</h3>
-          <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+          <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
             <span>Modulo 1:</span>
-            <span style="color: ${stats.m1Passed ? 'var(--success-color)' : 'var(--error-color)'}">${stats.m1Score.toFixed(1)} pt</span>
+            <span style="color: ${stats.m1Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m1Score.toFixed(1)} pt</span>
           </div>
-          <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+          <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
             <span>Modulo 2:</span>
-            <span style="color: ${stats.m2Passed ? 'var(--success-color)' : 'var(--error-color)'}">${stats.m2Score.toFixed(1)} pt</span>
+            <span style="color: ${stats.m2Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m2Score.toFixed(1)} pt</span>
           </div>
           <div style="display:flex; justify-content: space-between;">
             <span>Modulo 3:</span>
-            <span style="color: ${stats.m3Passed ? 'var(--success-color)' : 'var(--error-color)'}">${stats.m3Score.toFixed(1)} pt</span>
+            <span style="color: ${stats.m3Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m3Score.toFixed(1)} pt</span>
           </div>
         </div>
 
@@ -149,25 +164,30 @@ export const ui = {
     this.render(html);
   },
 
-  showSettings(hasCustomJson) {
+  showSettings(hasCustomJson, currentTheme) {
     const html = `
       <div class="card">
         <h2>Impostazioni</h2>
-        <p class="text-muted">Gestisci l'app e il database.</p>
         
-        <div style="margin-bottom: 20px;">
-          <h3 style="font-size: 16px; margin-bottom: 10px;">Aggiorna Domande (JSON)</h3>
-          <input type="file" id="json-upload" accept=".json" style="font-size: 14px;">
-          ${hasCustomJson ? '<p style="color:var(--success-color); font-size: 12px;">✅ Hai un database personalizzato attivo.</p>' : ''}
-          ${hasCustomJson ? '<button id="btn-reset-json" class="btn-secondary" style="margin-top: 10px;">Ripristina database originale</button>' : ''}
+        <div style="margin-bottom: 25px;">
+          <h3 style="font-size: 16px; margin-bottom: 10px;">Aspetto</h3>
+          <select id="theme-selector">
+            <option value="light" ${currentTheme === 'light' ? 'selected' : ''}>Tema Chiaro (Minimal)</option>
+            <option value="dark" ${currentTheme === 'dark' ? 'selected' : ''}>Tema Scuro (Elegante)</option>
+          </select>
         </div>
 
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
+        <div style="margin-bottom: 25px; padding-top: 15px; border-top: 1px solid var(--surface-border);">
+          <h3 style="font-size: 16px; margin-bottom: 10px;">Aggiorna Domande (JSON)</h3>
+          <input type="file" id="json-upload" accept=".json" style="font-size: 14px;">
+          ${hasCustomJson ? '<p style="color:var(--success-color); font-size: 13px; margin-top: 5px;">✅ Database personalizzato attivo.</p>' : ''}
+          ${hasCustomJson ? '<button id="btn-reset-json" class="btn-secondary mt-20">Ripristina database base</button>' : ''}
+        </div>
+
+        <div style="padding-top: 15px; border-top: 1px solid var(--surface-border);">
           <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--error-color);">Zona Pericolosa</h3>
           <button id="btn-reset-stats" class="btn-secondary" style="color: var(--error-color); border-color: var(--error-color);">Reset Totale Statistiche</button>
         </div>
-
-        <button id="btn-back" class="btn-primary mt-20">Torna Indietro</button>
       </div>
     `;
     this.render(html);
