@@ -1,0 +1,16 @@
+{
+  "name": "Biochimica Quiz App",
+  "short_name": "BioQuiz",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1e1e2e",
+  "theme_color": "#1e1e2e",
+  "description": "App per la preparazione all'esame di biochimica",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
