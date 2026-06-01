@@ -107,7 +107,7 @@ export const quizLogic = {
     answers.forEach(ans => {
       let points = 0;
       if (!ans || ans.selectedIndex === null || ans.selectedIndex === undefined) {
-        // Already tallied in stats.unanswered, 0 points
+        return; // Salta il resto del ciclo se la domanda non ha risposta per evitare errori su ans.module
       } else if (ans.selectedIndex === ans.correctIndex) {
         points = 0.8;
       } else {
