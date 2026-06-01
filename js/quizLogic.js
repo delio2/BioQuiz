@@ -97,7 +97,7 @@ export const quizLogic = {
     };
 
     // Calculate unanswered based on what's missing or marked as null
-    const actuallyAnsweredCount = answers.filter(a => a.selectedIndex !== null && a.selectedIndex !== undefined).length;
+    const actuallyAnsweredCount = answers.filter(a => a && a.selectedIndex !== null && a.selectedIndex !== undefined).length;
     stats.unanswered = totalQuestionsInExam - actuallyAnsweredCount;
 
     const MOD1_PASS = 5.6;
