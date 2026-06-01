@@ -25,3 +25,7 @@ Tutte le modifiche al progetto verranno documentate in questo file.
 - **Ottimizzazione PWA**: Aggiornato il Service Worker per cachare correttamente il file JavaScript delle domande di default.
 - Inizio del progetto: configurazione iniziale per la Quiz App in Vanilla JS.
 - Creazione della struttura di directory base.
+## [Unreleased]
+- Aggiunte 90 nuove domande al file `questions.json` (estratte da `domande_nuove`, relative al PDF "02_Metabolismo_Glucidico_I.pdf"). Il totale delle domande è ora 150.
+- Sostituito il contenuto di `questions.json` con le prime 60 domande del primo PDF estratte da `domande_nuove`.
+- Added unified `questions.json` containing 60 Metabolismo Terminale questions for the quiz app.
