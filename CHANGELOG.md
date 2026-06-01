@@ -3,6 +3,12 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Refactoring Difficoltà Risposte (questions.json)**:
+  - Riscritte le opzioni errate di 245 domande su 269 (91%) per aumentare significativamente la difficoltà.
+  - Le risposte sbagliate ora sono scientificamente plausibili e nello stesso dominio tematico della risposta corretta.
+  - Rimossi tutti i termini proibiti ("solo", "esclusivamente", "soltanto", "unicamente") da tutte le opzioni (sia errate che corrette).
+  - Verificate e preservate tutte le risposte corrette (indici e testi).
+  - Merge finale dei 14 chunk elaborati nel file `questions.json` master (269 domande, 726 opzioni singole modificate).
 - **Audit Fixes (Performance, Logic & UI)**:
   - Risolto bug logico critico: il voto viene ora calcolato in base al numero reale di domande pescate se il DB è incompleto.
   - Fixato problema del Timer su iOS/Mobile: ora usa `Date.now()` per evitare desincronizzazioni in background.
