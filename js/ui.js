@@ -87,18 +87,55 @@ export const ui = {
     this.render(html);
   },
 
-  showQuizSession(question, currentIndex, total, isExam, timerHtml = '') {
+  showQuizSession(question, currentIndex, total, isExam, timerHtml = '', savedAnswer = null, isFirst = false, isLast = false) {
     const progress = ((currentIndex) / total) * 100;
     
-    const optionsHtml = question.opzioni.map((opt, i) => `
-      <button class="quiz-option" data-index="${i}">${opt}</button>
-    `).join('');
-
-    const skipBtn = isExam ? `<button id="btn-skip" class="btn-secondary" style="margin-top: 15px; width: 100%; font-size: 15px; padding: 14px;">⏭️ Salta Domanda</button>` : '';
+    let optionsHtml = '';
+    question.opzioni.forEach((opt, i) => {
+        let btnClass = 'quiz-option';
+        let style = '';
+        
+        if (savedAnswer !== null) {
+            style = 'opacity: 0.4; cursor: default;';
+            if (i === question.rispostaCorretta) {
+                btnClass += ' correct';
+                style = 'opacity: 1; cursor: default;';
+            } else if (i === savedAnswer.selectedIndex) {
+                btnClass += ' wrong';
+                style = 'opacity: 1; cursor: default;';
+            }
+        }
+        optionsHtml += `<button class="${btnClass}" data-index="${i}" style="${style}">${opt}</button>`;
+    });
 
     const headerContext = isExam ? 
       `<span>Modulo ${question.modulo}</span>` : 
       `<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">${question.pdf_origine || ''}</span>`;
+
+    let feedbackHtml = '';
+    if (savedAnswer !== null) {
+        const isCorrect = savedAnswer.selectedIndex === question.rispostaCorretta;
+        let explanation = isCorrect ? '<b>Esatto!</b> ' : '<b>Sbagliato.</b> ';
+        if (question.spiegazione) {
+            explanation += `<br><br>${question.spiegazione}`;
+        }
+        feedbackHtml = `
+          <div id="feedback-container" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
+            <div id="explanation-text" style="margin-bottom: 20px; font-style: italic; line-height: 1.5;">${explanation}</div>
+          </div>
+        `;
+    } else {
+        feedbackHtml = `
+          <div id="feedback-container" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
+            <div id="explanation-text" style="margin-bottom: 20px; font-style: italic; line-height: 1.5;"></div>
+          </div>
+        `;
+    }
+
+    const prevBtnHtml = isFirst ? `<div style="flex:1;"></div>` : `<button id="btn-prev" class="btn-secondary" style="flex:1; margin-right: 10px; padding: 12px;">⬅ Precedente</button>`;
+    
+    let nextBtnText = isReviewMode ? "Torna ai Risultati 📊" : "Termina 🏁";
+    const nextBtnHtml = isLast ? `<button id="btn-next" class="btn-primary" style="flex:1; margin-left: 10px; padding: 12px; background: var(--error-color);">${nextBtnText}</button>` : `<button id="btn-next" class="btn-primary" style="flex:1; margin-left: 10px; padding: 12px;">Successiva ➡</button>`;
 
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -118,12 +155,13 @@ export const ui = {
         
         <div id="options-container">
           ${optionsHtml}
-          ${skipBtn}
         </div>
         
-        <div id="feedback-container" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
-          <div id="explanation-text" style="margin-bottom: 20px; font-style: italic; line-height: 1.5;"></div>
-          <button id="btn-next-question" class="btn-primary">Avanti</button>
+        ${feedbackHtml}
+
+        <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+          ${prevBtnHtml}
+          ${nextBtnHtml}
         </div>
       </div>
     `;
@@ -163,7 +201,8 @@ export const ui = {
           Non risposte: ${stats.unanswered} / 4 ammesse.
         </p>
 
-        <button id="btn-back-home" class="btn-primary">Torna alla Home</button>
+        <button id="btn-review-questions" class="btn-secondary mb-20" style="width:100%;">🔍 Revisiona Domande</button>
+        <button id="btn-back-home" class="btn-primary" style="width:100%;">Torna alla Home</button>
       </div>
     `;
     this.render(html);
@@ -177,7 +216,8 @@ export const ui = {
           ${correctCount} <span style="font-size: 20px; color: var(--text-secondary)">/ ${total}</span>
         </div>
         <p class="text-muted mb-20">Risposte corrette</p>
-        <button id="btn-back-home" class="btn-primary">Torna alla Home</button>
+        <button id="btn-review-questions" class="btn-secondary mb-20" style="width:100%;">🔍 Revisiona Domande</button>
+        <button id="btn-back-home" class="btn-primary" style="width:100%;">Torna alla Home</button>
       </div>
     `;
     this.render(html);

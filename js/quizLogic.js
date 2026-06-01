@@ -106,7 +106,7 @@ export const quizLogic = {
 
     answers.forEach(ans => {
       let points = 0;
-      if (ans.selectedIndex === null || ans.selectedIndex === undefined) {
+      if (!ans || ans.selectedIndex === null || ans.selectedIndex === undefined) {
         // Already tallied in stats.unanswered, 0 points
       } else if (ans.selectedIndex === ans.correctIndex) {
         points = 0.8;

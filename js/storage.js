@@ -73,7 +73,11 @@ export const storage = {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION)); } catch { return null; }
   },
   saveSessionState(state) {
-    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(state));
+    try {
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(state));
+    } catch(e) {
+      console.warn('Quota LocalStorage superata o errore di salvataggio sessione', e);
+    }
   },
   clearSessionState() {
     localStorage.removeItem(STORAGE_KEY_SESSION);

@@ -10,7 +10,9 @@ let appState = {
   answers: [],
   correctCount: 0,
   timerInterval: null,
-  timeRemaining: 0 // In seconds
+  timeRemaining: 0, // In seconds
+  isReviewMode: false,
+  lastStats: null
 };
 
 // Inizializzazione
@@ -37,9 +39,13 @@ function applyTheme(theme) {
 }
 
 function goHome() {
+  if (appState.currentView === 'quizSession' && appState.mode === 'exam') {
+    saveCurrentTimerOnly();
+  }
   stopTimer();
   appState.currentView = 'home';
   document.getElementById('btn-back-nav').style.display = 'none'; // Nascondi back button in home
+  appState.isReviewMode = false;
   
   const stats = storage.getStats();
   const session = storage.getSessionState();
@@ -77,6 +83,10 @@ function goHome() {
 }
 
 function goSettings() {
+  if (appState.currentView === 'quizSession' && appState.mode === 'exam') {
+    saveCurrentTimerOnly();
+  }
+  stopTimer();
   appState.currentView = 'settings';
   document.getElementById('btn-back-nav').style.display = 'block';
   ui.showSettings(storage.getCustomJson() !== null, storage.getTheme());
@@ -189,7 +199,13 @@ function startSession(isExamNew) {
   appState.currentView = 'quizSession';
   document.getElementById('btn-back-nav').style.display = 'block';
   appState.currentIndex = 0;
-  appState.answers = [];
+  appState.isReviewMode = false;
+  
+  // Inizializza o resetta l'array delle risposte se vuoto o inconsistente
+  if (!appState.answers || appState.answers.length === 0 || isExamNew || appState.answers.length !== appState.questions.length) {
+    appState.answers = new Array(appState.questions.length).fill(null);
+  }
+  
   appState.correctCount = 0;
   
   if (isExamNew) {
@@ -279,8 +295,10 @@ function renderCurrentQuestion() {
   appState.isAnswering = false;
 
   if (appState.currentIndex >= appState.questions.length) {
-    finishSession();
-    return;
+    appState.currentIndex = appState.questions.length - 1;
+  }
+  if (appState.currentIndex < 0) {
+    appState.currentIndex = 0;
   }
   
   const q = appState.questions[appState.currentIndex];
@@ -293,57 +311,69 @@ function renderCurrentQuestion() {
     timerHtml = `<div id="timer-display">${formatTime(appState.timeRemaining)}</div>`;
   }
 
-  ui.showQuizSession(q, appState.currentIndex, appState.questions.length, appState.mode === 'exam', timerHtml);
+  let savedAnswer = appState.answers[appState.currentIndex];
+  if (appState.isReviewMode && !savedAnswer) {
+      savedAnswer = { selectedIndex: -1 };
+  }
+
+  const isFirst = appState.currentIndex === 0;
+  const isLast = appState.currentIndex === appState.questions.length - 1;
+
+  ui.showQuizSession(q, appState.currentIndex, appState.questions.length, appState.mode === 'exam', timerHtml, savedAnswer, isFirst, isLast, appState.isReviewMode);
   
   const options = document.querySelectorAll('.quiz-option');
   options.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      if (appState.isAnswering) return;
+      if (appState.isAnswering || savedAnswer !== null) return;
       appState.isAnswering = true;
       const selectedIdx = parseInt(e.target.dataset.index);
       handleAnswer(selectedIdx);
     });
   });
 
-  const skipBtn = document.getElementById('btn-skip');
-  if (skipBtn) {
-    skipBtn.addEventListener('click', () => {
-      if (appState.isAnswering) return;
-      appState.isAnswering = true;
-      
-      appState.answers.push({
-        questionId: q.id,
-        selectedIndex: null,
-        correctIndex: q.rispostaCorretta,
-        module: q.modulo
-      });
-      
-      appState.currentIndex++;
-      saveCurrentSession();
-      renderCurrentQuestion();
+  const btnPrev = document.getElementById('btn-prev');
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => {
+      if (appState.currentIndex > 0) {
+        appState.currentIndex--;
+        saveCurrentSession();
+        renderCurrentQuestion();
+      }
     });
   }
 
-  document.getElementById('btn-next-question').addEventListener('click', () => {
-    appState.currentIndex++;
-    saveCurrentSession();
-    renderCurrentQuestion();
-  });
+  const btnNext = document.getElementById('btn-next');
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      if (appState.currentIndex < appState.questions.length - 1) {
+        appState.currentIndex++;
+        if (!appState.isReviewMode) saveCurrentSession();
+        renderCurrentQuestion();
+      } else {
+        if (appState.isReviewMode) {
+          if (appState.mode === 'exam') ui.showExamResults(appState.lastStats);
+          else ui.showStudyResults(appState.correctCount, appState.questions.length);
+          bindReviewButton();
+        } else {
+          finishSession();
+        }
+      }
+    });
+  }
 }
 
 function handleAnswer(selectedIdx) {
   const q = appState.questions[appState.currentIndex];
   const isCorrect = selectedIdx === q.rispostaCorretta;
   
-  appState.answers.push({
+  appState.answers[appState.currentIndex] = {
     questionId: q.id,
     selectedIndex: selectedIdx,
     correctIndex: q.rispostaCorretta,
     module: q.modulo
-  });
+  };
 
   if (isCorrect) {
-    appState.correctCount++;
     storage.removeWrongQuestion(q.id);
   } else {
     storage.addWrongQuestion(q.id);
@@ -381,10 +411,13 @@ function finishSession() {
   
   document.getElementById('btn-back-nav').style.display = 'none';
 
+  appState.correctCount = appState.answers.filter(a => a !== null && a.selectedIndex === a.correctIndex).length;
+
   if (appState.mode === 'exam') {
     const stats = quizLogic.calculateExamResults(appState.answers, appState.questions.length);
     storage.updateStats(stats.passed, appState.questions.length);
     appState.currentView = 'examResults';
+    appState.lastStats = stats;
     ui.showExamResults(stats);
   } else {
     storage.updateStats(null, appState.questions.length);
@@ -392,7 +425,21 @@ function finishSession() {
     ui.showStudyResults(appState.correctCount, appState.questions.length);
   }
   
+  bindReviewButton();
+}
+
+function bindReviewButton() {
   document.getElementById('btn-back-home').addEventListener('click', goHome);
+  const btnReview = document.getElementById('btn-review-questions');
+  if (btnReview) {
+    btnReview.addEventListener('click', () => {
+      appState.isReviewMode = true;
+      appState.currentIndex = 0;
+      appState.currentView = 'quizSession';
+      document.getElementById('btn-back-nav').style.display = 'block';
+      renderCurrentQuestion();
+    });
+  }
 }
 
 // Avvio
