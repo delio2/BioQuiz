@@ -7,8 +7,8 @@
   --primary-hover: #333333;
   --secondary-color: #f1f5f9;
   --secondary-hover: #e2e8f0;
-  --success-color: #10b981;
-  --error-color: #ef4444;
+  --success-color: #059669;
+  --error-color: #dc2626;
   --text-primary: #0f172a;
   --text-secondary: #64748b;
   --font-family: 'Outfit', -apple-system, sans-serif;
@@ -98,6 +98,10 @@ button {
   border: none;
   outline: none;
   transition: all var(--transition-speed) ease;
+}
+button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .icon-btn {
@@ -222,6 +226,10 @@ select, input[type="file"], input[type="number"] {
   font-size: 16px;
   margin-bottom: 15px;
   outline: none;
+}
+select:focus-visible, input:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 /* Utilities */

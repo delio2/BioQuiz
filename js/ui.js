@@ -1,6 +1,13 @@
 export const ui = {
   container: document.getElementById('main-content'),
 
+  escapeHTML(str) {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag] || tag));
+  },
+
   render(html) {
     this.container.innerHTML = html;
   },
@@ -105,7 +112,7 @@ export const ui = {
                 style = 'opacity: 1; cursor: default;';
             }
         }
-        optionsHtml += `<button class="${btnClass}" data-index="${i}" style="${style}">${opt}</button>`;
+        optionsHtml += `<button class="${btnClass}" data-index="${i}" style="${style}">${this.escapeHTML(opt)}</button>`;
     });
 
     const headerContext = isExam ? 
@@ -117,7 +124,7 @@ export const ui = {
         const isCorrect = savedAnswer.selectedIndex === question.rispostaCorretta;
         let explanation = isCorrect ? '<b>Esatto!</b> ' : '<b>Sbagliato.</b> ';
         if (question.spiegazione) {
-            explanation += `<br><br>${question.spiegazione}`;
+            explanation += `<br><br>${this.escapeHTML(question.spiegazione)}`;
         }
         feedbackHtml = `
           <div id="feedback-container" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
@@ -238,6 +245,7 @@ export const ui = {
 
         <div style="margin-bottom: 25px; padding-top: 15px; border-top: 1px solid var(--surface-border);">
           <h3 style="font-size: 16px; margin-bottom: 10px;">Aggiorna Domande (JSON)</h3>
+          <label for="json-upload" style="display:block; margin-bottom:5px; color: var(--text-secondary); font-size: 14px;">Seleziona file JSON:</label>
           <input type="file" id="json-upload" accept=".json" style="font-size: 14px;">
           ${hasCustomJson ? '<p style="color:var(--success-color); font-size: 13px; margin-top: 5px;">✅ Database personalizzato attivo.</p>' : ''}
           ${hasCustomJson ? '<button id="btn-reset-json" class="btn-secondary mt-20">Ripristina database base</button>' : ''}

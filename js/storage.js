@@ -53,7 +53,11 @@ export const storage = {
   addSeenQuestions(questionIdsArr) {
     const list = new Set(this.getSeenQuestions());
     questionIdsArr.forEach(id => list.add(id));
-    localStorage.setItem(STORAGE_KEY_SEEN, JSON.stringify(Array.from(list)));
+    try {
+      localStorage.setItem(STORAGE_KEY_SEEN, JSON.stringify(Array.from(list)));
+    } catch(e) {
+      console.warn('Quota LocalStorage superata per le domande viste.', e);
+    }
   },
 
   getCustomJson() {

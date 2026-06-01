@@ -318,15 +318,17 @@ function renderCurrentQuestion() {
 
   ui.showQuizSession(q, appState.currentIndex, appState.questions.length, appState.mode === 'exam', timerHtml, savedAnswer, isFirst, isLast, appState.isReviewMode);
   
-  const options = document.querySelectorAll('.quiz-option');
-  options.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      if (appState.isAnswering || savedAnswer !== null) return;
+  const optionsContainer = document.getElementById('options-container');
+  if (optionsContainer) {
+    optionsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.quiz-option');
+      if (!btn || appState.isAnswering || savedAnswer !== null) return;
+      
       appState.isAnswering = true;
-      const selectedIdx = parseInt(e.target.dataset.index);
+      const selectedIdx = parseInt(btn.dataset.index);
       handleAnswer(selectedIdx);
     });
-  });
+  }
 
   const btnPrev = document.getElementById('btn-prev');
   if (btnPrev) {
@@ -348,9 +350,7 @@ function renderCurrentQuestion() {
         renderCurrentQuestion();
       } else {
         if (appState.isReviewMode) {
-          if (appState.mode === 'exam') ui.showExamResults(appState.lastStats);
-          else ui.showStudyResults(appState.correctCount, appState.questions.length);
-          bindReviewButton();
+          showResultsScreen();
         } else {
           finishSession();
         }
@@ -398,7 +398,7 @@ function handleAnswer(selectedIdx) {
   
   let explanation = isCorrect ? '<b>Esatto!</b> ' : '<b>Sbagliato.</b> ';
   if (q.spiegazione) {
-    explanation += `<br><br>${q.spiegazione}`;
+    explanation += `<br><br>${ui.escapeHTML(q.spiegazione)}`;
   }
   
   expText.innerHTML = explanation;
@@ -418,13 +418,20 @@ function finishSession() {
     storage.updateStats(stats.passed, appState.questions.length);
     appState.currentView = 'examResults';
     appState.lastStats = stats;
-    ui.showExamResults(stats);
   } else {
     storage.updateStats(null, appState.questions.length);
     appState.currentView = 'studyResults';
-    ui.showStudyResults(appState.correctCount, appState.questions.length);
   }
   
+  showResultsScreen();
+}
+
+function showResultsScreen() {
+  if (appState.mode === 'exam') {
+    ui.showExamResults(appState.lastStats);
+  } else {
+    ui.showStudyResults(appState.correctCount, appState.questions.length);
+  }
   bindReviewButton();
 }
 

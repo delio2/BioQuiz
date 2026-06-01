@@ -26,6 +26,11 @@ Tutte le modifiche al progetto verranno documentate in questo file.
 - Inizio del progetto: configurazione iniziale per la Quiz App in Vanilla JS.
 - Creazione della struttura di directory base.
 ## [Unreleased]
+- **Audit Completo (Senior Developer)**: Eseguita un'analisi e risoluzione profonda di sicurezza, accessibilità e prestazioni.
+  - **Sicurezza (XSS)**: Implementata la funzione `escapeHTML` globale per prevenire iniezioni di script (Client-Side XSS) tramite JSON malevoli.
+  - **Accessibilità (A11y)**: Adeguato il contrasto dei colori di successo ed errore agli standard WCAG AA e implementati stili di focus da tastiera globali (`:focus-visible`). Aggiunte etichette form mancanti.
+  - **Resilienza**: Aggiunta protezione `try/catch` per gestire errori `QuotaExceededError` del LocalStorage nel tracking delle "Domande Viste".
+  - **Performance/Refactoring**: Introdotta la "Event Delegation" per ottimizzare l'aggancio degli eventi dei pulsanti di risposta, rimuovendo la ridondanza di codice tramite refactoring (`showResultsScreen`).
 - **Bug Fix (Randomizzazione)**: Le risposte (e l'ordine delle domande) ora vengono effettivamente mescolate ad ogni sessione. Un errore nella funzione di *shuffle* impediva alla randomizzazione di avere effetto, mostrando sempre la risposta corretta nella posizione originale (spesso la seconda).
 - **Bug Fix (Logica "Domande Mai Viste")**: Ora una domanda viene rimossa dalle "Mai Viste" (e marcata come vista) **solo** quando viene data una risposta. Se la si salta andando avanti, rimarrà tra le domande mai viste e ricapiterà in futuro.
 - **Navigazione Libera e Modalità Revisione**: Aggiunta la possibilità di navigare avanti e indietro tra le domande. Una volta data una risposta, questa non può più essere modificata.
