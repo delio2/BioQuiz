@@ -87,7 +87,7 @@ export const ui = {
     this.render(html);
   },
 
-  showQuizSession(question, currentIndex, total, isExam, timerHtml = '', savedAnswer = null, isFirst = false, isLast = false) {
+  showQuizSession(question, currentIndex, total, isExam, timerHtml = '', savedAnswer = null, isFirst = false, isLast = false, isReviewMode = false) {
     const progress = ((currentIndex) / total) * 100;
     
     let optionsHtml = '';
