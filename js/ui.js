@@ -66,7 +66,7 @@ export const ui = {
         
         <div class="checkbox-group">
           <label class="checkbox-label" style="font-weight: 600; margin-bottom: 5px;">
-            <input type="checkbox" id="check-all-pdfs" value="all" checked>
+            <input type="checkbox" id="check-all-pdfs" value="all">
             Tutti i PDF
           </label>
           <hr style="border:0; border-top:1px solid var(--surface-border); margin:5px 0;">
