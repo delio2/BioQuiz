@@ -26,6 +26,7 @@ Tutte le modifiche al progetto verranno documentate in questo file.
 - Inizio del progetto: configurazione iniziale per la Quiz App in Vanilla JS.
 - Creazione della struttura di directory base.
 ## [Unreleased]
+- **Bug Fix (Randomizzazione)**: Le risposte (e l'ordine delle domande) ora vengono effettivamente mescolate ad ogni sessione. Un errore nella funzione di *shuffle* impediva alla randomizzazione di avere effetto, mostrando sempre la risposta corretta nella posizione originale (spesso la seconda).
 - **Bug Fix (Logica "Domande Mai Viste")**: Ora una domanda viene rimossa dalle "Mai Viste" (e marcata come vista) **solo** quando viene data una risposta. Se la si salta andando avanti, rimarrà tra le domande mai viste e ricapiterà in futuro.
 - **Navigazione Libera e Modalità Revisione**: Aggiunta la possibilità di navigare avanti e indietro tra le domande. Una volta data una risposta, questa non può più essere modificata.
 - Aggiunto il tasto "Revisiona Domande" nella schermata dei risultati per ripercorrere l'intero test visualizzando errori e spiegazioni.
