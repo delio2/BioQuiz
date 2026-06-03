@@ -81,11 +81,16 @@ function goHome() {
   if (btnGraphic) {
     btnGraphic.addEventListener('click', () => {
       appState.mode = 'graphic';
-      let gQuestions = [...window.graphicQuestions];
+      const gq = window.graphicQuestions || [];
+      if (gq.length === 0) {
+        ui.showToast("Nessuna domanda grafica disponibile.");
+        return;
+      }
+      let gQuestions = [...gq];
       gQuestions = quizLogic._shuffleOptions(gQuestions);
       quizLogic.shuffle(gQuestions);
       appState.questions = gQuestions;
-      startSession(true);
+      startSession(false);
     });
   }
 
