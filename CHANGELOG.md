@@ -3,6 +3,7 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **UI:** Aggiunta la visualizzazione della versione dell'app (v1.1.0) in fondo alla schermata Home.
 - **Service Worker (PWA):** Corretto un bug critico in `sw.js` che impediva l'installazione della PWA per il caching offline. La lista `urlsToCache` tentava di caricare `icon-192x192.png` e `icon-512x512.png` (non presenti) causando il fallimento dell'intero blocco di caching. Sostituiti con `icon.svg`.
 - **Navigazione:** Rimossa la doppia associazione dell'evento click sul pulsante "Indietro" nella vista `goAnalytics` (causava l'esecuzione doppia di `goHome`).
 - **Statistiche:** Corretto il conteggio delle "Domande Fatte" a fine sessione. Ora vengono conteggiate solo le domande a cui si è effettivamente risposto, invece del numero totale di domande generate nella sessione.
