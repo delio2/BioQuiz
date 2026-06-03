@@ -1,5 +1,5 @@
-import { storage } from './storage.js';
-import { defaultQuestions } from './defaultQuestions.js';
+import { storage } from './storage.js?v=3';
+import { defaultQuestions } from './defaultQuestions.js?v=3';
 
 let allQuestions = [];
 
@@ -34,11 +34,20 @@ export const quizLogic = {
     }));
   },
 
-  // Rimescola l'ordine delle opzioni e aggiorna l'indice della risposta corretta
+  // Rimescola l'ordine delle opzioni e aggiorna l'indice della risposta corretta.
+  // Funziona con qualsiasi numero di opzioni (4 o 5).
   _shuffleOptions(questionsArray) {
     return questionsArray.map(q => {
       const qCopy = { ...q };
-      const optionsWithStatus = q.opzioni.map((opt, idx) => ({ text: opt, isCorrect: idx === q.rispostaCorretta }));
+      const nOpts = Array.isArray(q.opzioni) ? q.opzioni.length : 0;
+
+      // Guard: se la domanda non ha opzioni valide la restituiamo intatta
+      if (nOpts === 0) return qCopy;
+
+      const safeCorrect = (q.rispostaCorretta >= 0 && q.rispostaCorretta < nOpts)
+        ? q.rispostaCorretta : 0;
+
+      const optionsWithStatus = q.opzioni.map((opt, idx) => ({ text: opt, isCorrect: idx === safeCorrect }));
       this.shuffle(optionsWithStatus);
       qCopy.opzioni = optionsWithStatus.map(o => o.text);
       qCopy.rispostaCorretta = optionsWithStatus.findIndex(o => o.isCorrect);
@@ -72,79 +81,80 @@ export const quizLogic = {
   },
 
   generateExam() {
-    const m1 = allQuestions.filter(q => q.modulo === 1);
-    const m2 = allQuestions.filter(q => q.modulo === 2);
-    const m3 = allQuestions.filter(q => q.modulo === 3);
+    // Raggruppa per modulo e includi solo i moduli effettivamente presenti nel DB.
+    // Così l'esame resta giocabile anche se un modulo non ha (ancora) domande.
+    const byModule = {};
+    allQuestions.forEach(q => {
+      if (q.modulo === null || q.modulo === undefined) return;
+      (byModule[q.modulo] = byModule[q.modulo] || []).push(q);
+    });
 
-    this.shuffle(m1);
-    this.shuffle(m2);
-    this.shuffle(m3);
+    let examQuestions = [];
+    Object.keys(byModule).sort((a, b) => a - b).forEach(mod => {
+      const pool = byModule[mod];
+      this.shuffle(pool);
+      examQuestions = examQuestions.concat(pool.slice(0, 12)); // fino a 12 per modulo
+    });
 
-    const examQuestions = [...m1.slice(0, 12), ...m2.slice(0, 12), ...m3.slice(0, 12)];
-    this.shuffle(examQuestions); // Mescola moduli
-
+    this.shuffle(examQuestions); // Mescola l'ordine dei moduli
     return this._shuffleOptions(examQuestions);
   },
 
-  calculateExamResults(answers, totalQuestionsInExam = 36) {
-    const stats = {
-      totalScore: 0,
-      m1Score: 0, m2Score: 0, m3Score: 0,
-      m1Passed: false, m2Passed: false, m3Passed: false,
-      passed: false,
-      finalGrade30: 0,
-      unanswered: 0
-    };
+  // Soglia di sufficienza originale: 5.6 punti su un massimo di 9.6 (12 domande * 0.8) ≈ 58,3%.
+  // La applichiamo in proporzione al numero reale di domande di ciascun modulo nell'esame,
+  // così con 12 domande/modulo si ottiene esattamente la soglia storica di 5.6.
+  PASS_RATIO: 5.6 / 9.6,
 
-    // Calculate unanswered based on what's missing or marked as null
-    const actuallyAnsweredCount = answers.filter(a => a && a.selectedIndex !== null && a.selectedIndex !== undefined).length;
-    stats.unanswered = totalQuestionsInExam - actuallyAnsweredCount;
+  calculateExamResults(answers, examQuestions = []) {
+    const totalQuestionsInExam = examQuestions.length || answers.length;
 
-    const MOD1_PASS = 5.6;
-    const MOD2_PASS = 5.6;
-    const MOD3_PASS = 5.6;
-
-    answers.forEach(ans => {
-      let points = 0;
-      if (!ans || ans.selectedIndex === null || ans.selectedIndex === undefined) {
-        return; // Salta il resto del ciclo se la domanda non ha risposta per evitare errori su ans.module
-      } else if (ans.selectedIndex === ans.correctIndex) {
-        points = 0.8;
-      } else {
-        points = -0.2;
-      }
-
-      stats.totalScore += points;
-      if (ans.module === 1) stats.m1Score += points;
-      if (ans.module === 2) stats.m2Score += points;
-      if (ans.module === 3) stats.m3Score += points;
+    // Conteggio domande per modulo effettivamente presenti nell'esame
+    const moduleCounts = {};
+    examQuestions.forEach(q => {
+      moduleCounts[q.modulo] = (moduleCounts[q.modulo] || 0) + 1;
     });
 
-    // Arrotondamento per prevenire i classici errori in virgola mobile di JavaScript (es. 5.600000001)
-    stats.totalScore = Math.round(stats.totalScore * 100) / 100;
-    stats.m1Score = Math.round(stats.m1Score * 100) / 100;
-    stats.m2Score = Math.round(stats.m2Score * 100) / 100;
-    stats.m3Score = Math.round(stats.m3Score * 100) / 100;
+    const round2 = n => Math.round(n * 100) / 100;
 
-    // Limit score not to go below zero theoretically for final display
-    stats.totalScore = Math.max(0, stats.totalScore);
+    const moduleScores = {};
+    let totalScore = 0;
+    let answered = 0;
 
-    // Calculate max possible points based on the actual number of questions generated
+    answers.forEach(ans => {
+      if (!ans || ans.selectedIndex === null || ans.selectedIndex === undefined) return;
+      answered++;
+      const points = (ans.selectedIndex === ans.correctIndex) ? 0.8 : -0.2;
+      totalScore += points;
+      moduleScores[ans.module] = (moduleScores[ans.module] || 0) + points;
+    });
+
+    totalScore = Math.max(0, round2(totalScore));
+
+    // Fallback: se non ho ricevuto le domande, deduco i moduli dalle risposte
+    let moduli = Object.keys(moduleCounts);
+    if (moduli.length === 0) {
+      moduli = [...new Set(answers.filter(a => a && a.module != null).map(a => String(a.module)))];
+      moduli.forEach(m => { moduleCounts[m] = answers.filter(a => a && String(a.module) === m).length; });
+    }
+
+    const modules = moduli.sort((a, b) => a - b).map(m => {
+      const count = moduleCounts[m];
+      const max = count * 0.8;
+      const score = round2(moduleScores[m] || 0);
+      return { modulo: m, score, max: round2(max), count, passed: score >= this.PASS_RATIO * max };
+    });
+
+    const allModulesPassed = modules.length > 0 && modules.every(m => m.passed);
+    const unanswered = totalQuestionsInExam - answered;
+    const maxUnanswered = Math.round(totalQuestionsInExam * 4 / 36); // 4 su 36, in proporzione
+
     const TOTAL_MAX = Math.max(1, totalQuestionsInExam * 0.8);
+    let finalGrade30 = Math.round((totalScore / TOTAL_MAX) * 31 * 10) / 10;
+    finalGrade30 = Math.min(31, Math.max(0, finalGrade30));
 
-    stats.finalGrade30 = Math.round((stats.totalScore / TOTAL_MAX) * 31 * 10) / 10;
-    
-    // Limits
-    if (stats.finalGrade30 > 31) stats.finalGrade30 = 31;
-    if (stats.finalGrade30 < 0) stats.finalGrade30 = 0;
+    const passed = allModulesPassed && unanswered <= maxUnanswered && finalGrade30 >= 18;
 
-    stats.m1Passed = stats.m1Score >= MOD1_PASS;
-    stats.m2Passed = stats.m2Score >= MOD2_PASS;
-    stats.m3Passed = stats.m3Score >= MOD3_PASS;
-
-    stats.passed = stats.m1Passed && stats.m2Passed && stats.m3Passed && stats.unanswered <= 4 && stats.finalGrade30 >= 18;
-
-    return stats;
+    return { totalScore, finalGrade30, passed, unanswered, maxUnanswered, modules };
   },
 
   shuffle(array) {

@@ -3,6 +3,18 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Audit domande PDF 04 (Ormoni II parte):** Revisione completa delle 41 domande. Corretta un'inesattezza scientifica nella Q288 (la vasopressina agisce sui tubuli renali, non sui glomeruli). Rimossa parola vietata "solo" da un distrattore della Q303. Redistribuiti i valori `r` (posizione della risposta corretta) da 40/41 in posizione 0 a distribuzione uniforme (r:0=8, r:1=8, r:2=9, r:3=8, r:4=8). Bump cache → `bioquiz-v24`.
+- **Audit Senior — Correzione Bug (critici, medi, minori)**:
+  - **[CRITICO] Esame ora superabile e adattivo**: con il modulo 3 ancora privo di domande, l'esame generava 24 domande ed era impossibile da superare (`m3Passed` sempre falso). Ora `generateExam` include solo i moduli presenti e `calculateExamResults` calcola la soglia di sufficienza in proporzione al numero di domande di ciascun modulo (resta 5.6 con 12 domande/modulo), scalando anche il limite di non-risposte (4 su 36). Quando il modulo 3 verrà popolato il comportamento tornerà identico all'originale.
+  - **[CRITICO] Domanda grafica g_001**: la consegna mostrava la reazione della risposta corretta. Rimossa dal testo della domanda.
+  - **[MEDIO] Cache-busting allineato**: `quizLogic.js` ora importa `storage.js`/`defaultQuestions.js` con `?v=3` (evita doppie istanze dei moduli in memoria).
+  - **[MEDIO] Timer esame fedele**: salvata una scadenza assoluta (`examEndTime`); riprendendo una simulazione il tempo trascorso ad app chiusa viene ora scontato (niente più tempo "regalato"). Se scade durante la pausa, l'esame si chiude al rientro.
+  - **[MEDIO] Validazione upload JSON**: ogni domanda è ora verificata (id, domanda, opzioni ≥2, rispostaCorretta valida) prima del salvataggio, con messaggio sull'indice della prima domanda non valida.
+  - **[MEDIO] Statistiche pulite**: i Test Grafici sperimentali non inquinano più `pdfStats`, "Domande Viste" ed "Errori".
+  - **[MINORE] Offline PWA**: `caches.match` con `ignoreSearch` così gli asset versionati (`?v=3`) trovano la cache anche offline. Bump cache → `bioquiz-v20`.
+  - **[MINORE] Barra di avanzamento**: ora raggiunge il 100% sull'ultima domanda.
+- **Nuove domande — PDF 04 (Ormoni II parte)**: aggiunte 41 domande a 5 opzioni sul PDF `04_Ormoni_II_parte.pdf` (modulo 2). Totale database: 290 domande (m1: 150, m2: 140). Bump cache → `bioquiz-v22`.
+- **Supporto 5 opzioni per domanda**: il rendering delle risposte è ora esplicitamente dinamico (4 o 5 opzioni in base alla domanda, in tutte le modalità — allenamento, esame, revisione). Aggiunto attributo `data-option-count` sul container per futuri stili CSS. Aggiunto guard in `_shuffleOptions` contro indici `rispostaCorretta` fuori range. Le domande generate con il nuovo prompt (stile esame reale) possono avere 5 opzioni e convivono con le domande esistenti a 4. Bump cache → `bioquiz-v21`.
 - **Bugfix (Cache Buster):** Per garantire che l'aggiornamento arrivi a tutti gli utenti che visualizzavano le molecole "vuote", è stato aggiunto un meccanismo anti-cache (`?v=3`) su tutte le risorse importate, in aggiunta all'id unico sui canvas.
 - **Bugfix (CSS e Temi):** Ripulito il file `style.css` da errori di formattazione (caratteri UTF-16 null) che corrompevano gli stili in fondo al file.
 - **Bugfix (SMILES API):** Risolto il problema delle formule chimiche vuote. Il link CDN `unpkg` della libreria SmilesDrawer restituiva un errore 404 (Not Found). Sostituito con `jsDelivr` in `index.html` e in `sw.js`.

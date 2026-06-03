@@ -3,7 +3,7 @@ const graphicQuestions = [
     "id": "g_001",
     "pdf_origine": "Quiz Sperimentale Grafico",
     "modulo": "Biochimica",
-    "domanda": "Quale delle seguenti reazioni del ciclo di Krebs è catalizzata da un enzima FAD-dipendente?\n\n[REACTION] [O-]C(=O)CCC(=O)[O-] <=> [O-]C(=O)/C=C/C(=O)[O-] [/REACTION]",
+    "domanda": "Quale delle seguenti reazioni del ciclo di Krebs è catalizzata da un enzima FAD-dipendente?",
     "opzioni": [
       "[REACTION] [O-]C(=O)CCC(=O)[O-] <=> [O-]C(=O)/C=C/C(=O)[O-] [/REACTION]",
       "[REACTION] [O-]C(=O)C(O)CC(=O)[O-] <=> [O-]C(=O)C(=O)CC(=O)[O-] [/REACTION]",

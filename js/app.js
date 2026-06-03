@@ -11,6 +11,7 @@ let appState = {
   correctCount: 0,
   timerInterval: null,
   timeRemaining: 0, // In seconds
+  examEndTime: null, // Timestamp assoluto di scadenza esame (per non "regalare" tempo al resume)
   isReviewMode: false,
   lastStats: null
 };
@@ -139,7 +140,20 @@ function goSettings() {
       reader.onload = async (event) => {
         try {
           const json = JSON.parse(event.target.result);
-          if (Array.isArray(json) && json.length > 0 && json[0].id) {
+          const isValidQuestion = q =>
+            q && typeof q === 'object' &&
+            q.id !== undefined &&
+            typeof q.domanda === 'string' &&
+            Array.isArray(q.opzioni) && q.opzioni.length >= 2 &&
+            Number.isInteger(q.rispostaCorretta) &&
+            q.rispostaCorretta >= 0 && q.rispostaCorretta < q.opzioni.length;
+
+          if (!Array.isArray(json) || json.length === 0) {
+            ui.showToast("Formato JSON non valido. Deve essere un array di domande.");
+          } else if (!json.every(isValidQuestion)) {
+            const bad = json.findIndex(q => !isValidQuestion(q));
+            ui.showToast(`Domanda non valida all'indice ${bad}: controlla id, domanda, opzioni e rispostaCorretta.`);
+          } else {
             const success = storage.saveCustomJson(json);
             if (success) {
               await quizLogic.init();
@@ -148,8 +162,6 @@ function goSettings() {
             } else {
               ui.showToast("Il file è troppo grande per la memoria del browser.");
             }
-          } else {
-            ui.showToast("Formato JSON non valido. Deve essere un array di domande.");
           }
         } catch (err) {
           ui.showToast("Errore nella lettura del file JSON.");
@@ -237,11 +249,14 @@ function startSession(isExamNew) {
   }
   
   appState.correctCount = 0;
-  
+
   if (isExamNew) {
-    // 60 minutes timer for 36 questions
-    appState.timeRemaining = 60 * 60; 
+    // Timer di 60 minuti: salvo una scadenza assoluta così il tempo scorre anche ad app chiusa
+    appState.timeRemaining = 60 * 60;
+    appState.examEndTime = Date.now() + appState.timeRemaining * 1000;
     startTimer();
+  } else {
+    appState.examEndTime = null;
   }
 
   saveCurrentSession();
@@ -255,15 +270,29 @@ function resumeSession(session) {
   appState.currentIndex = session.currentIndex;
   appState.answers = session.answers;
   appState.correctCount = session.correctCount;
-  appState.timeRemaining = session.timeRemaining;
-  
+  appState.examEndTime = session.examEndTime || null;
+
+  // Per l'esame ricalcolo il tempo residuo reale dalla scadenza assoluta
+  if (appState.mode === 'exam' && appState.examEndTime) {
+    appState.timeRemaining = Math.max(0, Math.ceil((appState.examEndTime - Date.now()) / 1000));
+  } else {
+    appState.timeRemaining = session.timeRemaining;
+  }
+
   appState.currentView = 'quizSession';
   document.getElementById('btn-back-nav').style.display = 'block';
-  
-  if (appState.mode === 'exam' && appState.timeRemaining > 0) {
-    startTimer();
+
+  if (appState.mode === 'exam') {
+    if (appState.timeRemaining > 0) {
+      startTimer();
+    } else {
+      // Il tempo è scaduto mentre l'app era chiusa: chiudi subito la simulazione
+      ui.showToast("Tempo Scaduto durante la pausa!");
+      finishSession();
+      return;
+    }
   }
-  
+
   renderCurrentQuestion();
 }
 
@@ -274,7 +303,8 @@ function saveCurrentSession() {
     currentIndex: appState.currentIndex,
     answers: appState.answers,
     correctCount: appState.correctCount,
-    timeRemaining: appState.timeRemaining
+    timeRemaining: appState.timeRemaining,
+    examEndTime: appState.examEndTime
   });
 }
 
@@ -288,7 +318,9 @@ function saveCurrentTimerOnly() {
 
 function startTimer() {
   stopTimer();
-  const endTime = Date.now() + (appState.timeRemaining * 1000);
+  // Usa la scadenza assoluta se presente (sopravvive a chiusure/refresh), altrimenti la deriva dal residuo
+  const endTime = appState.examEndTime || (Date.now() + appState.timeRemaining * 1000);
+  appState.examEndTime = endTime;
 
   appState.timerInterval = setInterval(() => {
     appState.timeRemaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
@@ -392,8 +424,6 @@ function renderCurrentQuestion() {
 function handleAnswer(selectedIdx) {
   const q = appState.questions[appState.currentIndex];
   const isCorrect = (selectedIdx === q.rispostaCorretta);
-  
-  storage.updatePdfStat(q.pdf_origine, isCorrect);
 
   appState.answers[appState.currentIndex] = {
     questionId: q.id,
@@ -402,14 +432,17 @@ function handleAnswer(selectedIdx) {
     module: q.modulo
   };
 
-  if (isCorrect) {
-    storage.removeWrongQuestion(q.id);
-  } else {
-    storage.addWrongQuestion(q.id);
+  // I test grafici sono sperimentali: non devono inquinare statistiche, "viste" ed "errori" del DB reale
+  if (appState.mode !== 'graphic') {
+    storage.updatePdfStat(q.pdf_origine, isCorrect);
+    if (isCorrect) {
+      storage.removeWrongQuestion(q.id);
+    } else {
+      storage.addWrongQuestion(q.id);
+    }
+    // Marca la domanda come vista SOLO quando viene effettivamente data una risposta
+    storage.addSeenQuestions([q.id]);
   }
-  
-  // Marca la domanda come vista SOLO quando viene effettivamente data una risposta
-  storage.addSeenQuestions([q.id]);
 
   saveCurrentSession(); // Autosalvataggio dopo la risposta
 
@@ -447,7 +480,7 @@ function finishSession() {
   appState.correctCount = appState.answers.filter(a => a !== null && a.selectedIndex === a.correctIndex).length;
 
   if (appState.mode === 'exam') {
-    const stats = quizLogic.calculateExamResults(appState.answers, appState.questions.length);
+    const stats = quizLogic.calculateExamResults(appState.answers, appState.questions);
     storage.updateStats(stats.passed, answeredCount);
     
     storage.addExamToHistory({

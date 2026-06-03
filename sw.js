@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bioquiz-v19';
+const CACHE_NAME = 'bioquiz-v24';
 const urlsToCache = [
   './',
   './index.html',
@@ -38,10 +38,9 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Network first, poi fallback sulla cache (utile in fase di sviluppo continuo per avere sempre i file freschi)
+  // Network first, poi fallback sulla cache (utile in fase di sviluppo continuo per avere sempre i file freschi).
+  // ignoreSearch: true => in offline gli asset versionati (es. app.js?v=3) trovano comunque la voce in cache (app.js).
   e.respondWith(
-    fetch(e.request).catch(() => {
-      return caches.match(e.request);
-    })
+    fetch(e.request).catch(() => caches.match(e.request, { ignoreSearch: true }))
   );
 });

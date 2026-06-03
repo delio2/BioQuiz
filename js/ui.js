@@ -169,7 +169,7 @@ export const ui = {
   },
 
   showQuizSession(question, currentIndex, total, isExam, timerHtml = '', savedAnswer = null, isFirst = false, isLast = false, isReviewMode = false) {
-    const progress = ((currentIndex) / total) * 100;
+    const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
     
     let optionsHtml = '';
     question.opzioni.forEach((opt, i) => {
@@ -234,7 +234,7 @@ export const ui = {
         
         <h2 style="font-size: 20px; margin-bottom: 25px; line-height: 1.4;">${this.parseChemicalTags(this.escapeHTML(question.domanda))}</h2>
         
-        <div id="options-container">
+        <div id="options-container" data-option-count="${question.opzioni.length}">
           ${optionsHtml}
         </div>
         
@@ -253,33 +253,36 @@ export const ui = {
     const passedColor = stats.passed ? 'var(--success-color)' : 'var(--error-color)';
     const resultMsg = stats.passed ? 'Congratulazioni! 🎉' : 'Non mollare, riprova! 💪';
 
+    const modules = stats.modules || [];
+    const moduleRows = modules.map((m, idx) => {
+      const minPt = (this && this.PASS_RATIO ? this.PASS_RATIO : (5.6 / 9.6)) * m.max;
+      const last = idx === modules.length - 1;
+      return `
+          <div style="display:flex; justify-content: space-between; ${last ? '' : 'margin-bottom: 8px;'}">
+            <span>Modulo ${this.escapeHTML(String(m.modulo))} <span style="color: var(--text-secondary); font-size: 12px;">(min ${minPt.toFixed(1)})</span>:</span>
+            <span style="color: ${m.passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${m.score.toFixed(1)} / ${m.max.toFixed(1)} pt</span>
+          </div>`;
+    }).join('');
+
+    const moduleBox = modules.length ? `
+        <div style="background: var(--bg-color); border-radius: 12px; padding: 15px; text-align: left; margin-bottom: 20px; border: 1px solid var(--surface-border);">
+          <h3 style="font-size: 16px; margin-bottom: 10px;">Dettaglio Moduli</h3>
+          ${moduleRows}
+        </div>` : '';
+
     const html = `
       <div class="card text-center">
         <h2 style="color: ${passedColor}; font-size: 26px;">${resultMsg}</h2>
         <p class="text-muted">Esito della Simulazione</p>
-        
+
         <div style="font-size: 48px; font-weight: 800; margin: 20px 0; color: ${passedColor};">
           ${stats.finalGrade30.toFixed(1)} <span style="font-size: 20px; color: var(--text-secondary)">/ 31</span>
         </div>
 
-        <div style="background: var(--bg-color); border-radius: 12px; padding: 15px; text-align: left; margin-bottom: 20px; border: 1px solid var(--surface-border);">
-          <h3 style="font-size: 16px; margin-bottom: 10px;">Dettaglio Moduli (Min 5.6)</h3>
-          <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
-            <span>Modulo 1:</span>
-            <span style="color: ${stats.m1Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m1Score.toFixed(1)} pt</span>
-          </div>
-          <div style="display:flex; justify-content: space-between; margin-bottom: 8px;">
-            <span>Modulo 2:</span>
-            <span style="color: ${stats.m2Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m2Score.toFixed(1)} pt</span>
-          </div>
-          <div style="display:flex; justify-content: space-between;">
-            <span>Modulo 3:</span>
-            <span style="color: ${stats.m3Passed ? 'var(--success-color)' : 'var(--error-color)'}; font-weight: 600;">${stats.m3Score.toFixed(1)} pt</span>
-          </div>
-        </div>
+        ${moduleBox}
 
         <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
-          Non risposte: ${stats.unanswered} / 4 ammesse.
+          Non risposte: ${stats.unanswered} / ${stats.maxUnanswered} ammesse.
         </p>
 
         <button id="btn-review-questions" class="btn-secondary mb-20" style="width:100%;">🔍 Revisiona Domande</button>
