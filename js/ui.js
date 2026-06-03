@@ -122,7 +122,7 @@ export const ui = {
         <button id="btn-analytics" class="btn-secondary" style="width: 100%;">📊 Statistiche Avanzate</button>
       </div>
       <div style="text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 15px; opacity: 0.7;">
-        v1.1.0
+        v1.2.0
       </div>
     `;
     this.render(html);

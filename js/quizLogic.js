@@ -1,5 +1,5 @@
-import { storage } from './storage.js?v=3';
-import { defaultQuestions } from './defaultQuestions.js?v=3';
+import { storage } from './storage.js?v=4';
+import { defaultQuestions } from './defaultQuestions.js?v=4';
 
 let allQuestions = [];
 

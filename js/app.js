@@ -1,6 +1,6 @@
-import { ui } from './ui.js?v=3';
-import { storage } from './storage.js?v=3';
-import { quizLogic } from './quizLogic.js?v=3';
+import { ui } from './ui.js?v=4';
+import { storage } from './storage.js?v=4';
+import { quizLogic } from './quizLogic.js?v=4';
 
 let appState = {
   currentView: 'home',
