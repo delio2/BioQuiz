@@ -3,6 +3,7 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Bugfix (Cache Buster):** Per garantire che l'aggiornamento arrivi a tutti gli utenti che visualizzavano le molecole "vuote", è stato aggiunto un meccanismo anti-cache (`?v=3`) su tutte le risorse importate, in aggiunta all'id unico sui canvas.
 - **Bugfix (CSS e Temi):** Ripulito il file `style.css` da errori di formattazione (caratteri UTF-16 null) che corrompevano gli stili in fondo al file.
 - **Bugfix (SMILES API):** Risolto il problema delle formule chimiche vuote. Il link CDN `unpkg` della libreria SmilesDrawer restituiva un errore 404 (Not Found). Sostituito con `jsDelivr` in `index.html` e in `sw.js`.
 - **Bugfix (SMILES Drawer):** Aggiornato il blocco di rendering `ui.js` per gestire correttamente le API di SmilesDrawer v2.x (`Drawer.parse` e `SmiDrawer`) in sostituzione della funzione obsoleta `apply()`. Inoltre, il tema di SmilesDrawer (Chiaro/Scuro) ora viene letto dinamicamente dal tema generale dell'app, garantendo visibilità perfetta delle molecole in qualsiasi modalità.

@@ -26,7 +26,8 @@ export const ui = {
             html += `<div class="reaction-text-node">[?]</div>`;
           } else {
             let smiles = part.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-            html += `<canvas class="chem-canvas" data-smiles="${smiles}"></canvas>`;
+            let uniqueId = 'chem-canvas-' + Math.random().toString(36).substr(2, 9);
+            html += `<canvas id="${uniqueId}" class="chem-canvas" data-smiles="${smiles}"></canvas>`;
           }
        });
        html += '</div>';
@@ -52,20 +53,22 @@ export const ui = {
             if (SmilesDrawer.SmiDrawer) {
                 const drawer = new SmilesDrawer.SmiDrawer(options);
                 canvases.forEach(canvas => {
+                    if (!canvas.id) canvas.id = 'chem-canvas-' + Math.random().toString(36).substr(2, 9);
                     const smiles = canvas.getAttribute('data-smiles');
                     if (smiles) {
                         try {
-                            drawer.draw(smiles, canvas, currentTheme);
+                            drawer.draw(smiles, '#' + canvas.id, currentTheme);
                         } catch(e) { console.error(e); }
                     }
                 });
             } else if (SmilesDrawer.Drawer) {
                 const drawer = new SmilesDrawer.Drawer(options);
                 canvases.forEach(canvas => {
+                    if (!canvas.id) canvas.id = 'chem-canvas-' + Math.random().toString(36).substr(2, 9);
                     const smiles = canvas.getAttribute('data-smiles');
                     if (smiles) {
                         SmilesDrawer.parse(smiles, function(tree) {
-                            drawer.draw(tree, canvas, currentTheme, false);
+                            drawer.draw(tree, '#' + canvas.id, currentTheme, false);
                         }, function(err) { console.error(err); });
                     }
                 });

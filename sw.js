@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bioquiz-v18';
+const CACHE_NAME = 'bioquiz-v19';
 const urlsToCache = [
   './',
   './index.html',
