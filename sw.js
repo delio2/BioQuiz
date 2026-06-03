@@ -8,9 +8,11 @@ const urlsToCache = [
   './js/quizLogic.js',
   './js/storage.js',
   './js/defaultQuestions.js',
+  './js/graphicQuestions.js',
   './manifest.json',
   './icons/icon.svg',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  'https://cdn.jsdelivr.net/npm/chart.js',
+  'https://unpkg.com/smiles-drawer@2.1.8/dist/smiles-drawer.min.js'
 ];
 
 self.addEventListener('install', (e) => {

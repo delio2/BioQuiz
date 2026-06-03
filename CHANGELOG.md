@@ -3,6 +3,8 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Quiz Grafici (Molecole):** Implementato il supporto per strutture chimiche vettoriali tramite notazione SMILES. Aggiunta libreria *SmilesDrawer* (~90kb). Le molecole vengono renderizzate istantaneamente come SVG/Canvas responsive. Creata sintassi speciale `[REACTION] ... [/REACTION]`.
+- **UI:** Aggiunto pulsante "Test Grafici Sperimentali" nella Home. Le reazioni usano Flexbox per adattarsi agli schermi degli smartphone senza rompere il layout.
 - **UI:** Aggiunta la visualizzazione della versione dell'app (v1.1.0) in fondo alla schermata Home.
 - **Service Worker (PWA):** Corretto un bug critico in `sw.js` che impediva l'installazione della PWA per il caching offline. La lista `urlsToCache` tentava di caricare `icon-192x192.png` e `icon-512x512.png` (non presenti) causando il fallimento dell'intero blocco di caching. Sostituiti con `icon.svg`.
 - **Navigazione:** Rimossa la doppia associazione dell'evento click sul pulsante "Indietro" nella vista `goAnalytics` (causava l'esecuzione doppia di `goHome`).

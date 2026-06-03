@@ -8,8 +8,49 @@ export const ui = {
     }[tag] || tag));
   },
 
+  parseChemicalTags(text) {
+    if (!text.includes('[REACTION]')) return text;
+    return text.replace(/\[REACTION\]([\s\S]*?)\[\/REACTION\]/g, (match, content) => {
+       const tokens = content.trim().split(/\s+/);
+       let html = '<div class="reaction-container">';
+       tokens.forEach(part => {
+          if (part === '&lt;=&gt;' || part === '<=>') {
+            html += '<div class="reaction-arrow">⇌</div>';
+          } else if (part === '-&gt;' || part === '->') {
+            html += '<div class="reaction-arrow">→</div>';
+          } else if (part === '+') {
+            html += '<div class="reaction-plus">+</div>';
+          } else if (part.startsWith('[TEXT:') && part.endsWith(']')) {
+            html += `<div class="reaction-text-node">${part.substring(6, part.length-1).replace(/_/g, ' ')}</div>`;
+          } else if (part === '[?]') {
+            html += `<div class="reaction-text-node">[?]</div>`;
+          } else {
+            let smiles = part.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            html += `<canvas class="chem-canvas" data-smiles="${smiles}"></canvas>`;
+          }
+       });
+       html += '</div>';
+       return html;
+    });
+  },
+
   render(html) {
     this.container.innerHTML = html;
+    
+    if (html.includes('chem-canvas') && typeof SmilesDrawer !== 'undefined') {
+      setTimeout(() => {
+        const options = { 
+          width: 250, height: 150, 
+          compactDrawing: false, 
+          terminalCarbons: true, 
+          explicitHydrogens: true,
+          atomVisualization: 'default'
+        };
+        SmilesDrawer.apply(options, 'canvas.chem-canvas', 'dark', function(err) {
+          if (err) console.error("SmilesDrawer Error:", err);
+        });
+      }, 50);
+    }
   },
 
   showToast(message) {
@@ -50,6 +91,7 @@ export const ui = {
         <button id="btn-start-study" class="btn-secondary mb-20">📚 Allenamento Mirato</button>
         <button id="btn-start-unseen" class="btn-secondary mb-20">🔎 Domande Mai Viste</button>
         <button id="btn-review-wrong" class="btn-secondary mb-20">⚠️ Ripasso Errori</button>
+        <button id="btn-start-graphic" class="btn-primary mb-20" style="background: #9b59b6; width: 100%;">🧪 Test Grafici Sperimentali</button>
         <button id="btn-analytics" class="btn-secondary" style="width: 100%;">📊 Statistiche Avanzate</button>
       </div>
       <div style="text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 15px; opacity: 0.7;">
@@ -117,7 +159,7 @@ export const ui = {
                 style = 'opacity: 1; cursor: default;';
             }
         }
-        optionsHtml += `<button class="${btnClass}" data-index="${i}" style="${style}">${this.escapeHTML(opt)}</button>`;
+        optionsHtml += `<button class="${btnClass}" data-index="${i}" style="${style}">${this.parseChemicalTags(this.escapeHTML(opt))}</button>`;
     });
 
     const headerContext = isExam ? 
@@ -163,7 +205,7 @@ export const ui = {
           ${headerContext}
         </div>
         
-        <h2 style="font-size: 20px; margin-bottom: 25px; line-height: 1.4;">${question.domanda}</h2>
+        <h2 style="font-size: 20px; margin-bottom: 25px; line-height: 1.4;">${this.parseChemicalTags(this.escapeHTML(question.domanda))}</h2>
         
         <div id="options-container">
           ${optionsHtml}

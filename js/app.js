@@ -77,6 +77,18 @@ function goHome() {
   const btnAnalytics = document.getElementById('btn-analytics');
   if (btnAnalytics) btnAnalytics.addEventListener('click', goAnalytics);
 
+  const btnGraphic = document.getElementById('btn-start-graphic');
+  if (btnGraphic) {
+    btnGraphic.addEventListener('click', () => {
+      appState.mode = 'graphic';
+      let gQuestions = [...window.graphicQuestions];
+      gQuestions = quizLogic._shuffleOptions(gQuestions);
+      quizLogic.shuffle(gQuestions);
+      appState.questions = gQuestions;
+      startSession(true);
+    });
+  }
+
   const resumeBtn = document.getElementById('btn-resume-session');
   if (resumeBtn) {
     resumeBtn.addEventListener('click', () => {
