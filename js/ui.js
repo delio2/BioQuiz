@@ -46,9 +46,32 @@ export const ui = {
           explicitHydrogens: true,
           atomVisualization: 'default'
         };
-        SmilesDrawer.apply(options, 'canvas.chem-canvas', 'dark', function(err) {
-          if (err) console.error("SmilesDrawer Error:", err);
-        });
+        const canvases = this.container.querySelectorAll('canvas.chem-canvas');
+        if (canvases.length > 0) {
+            if (SmilesDrawer.SmiDrawer) {
+                const drawer = new SmilesDrawer.SmiDrawer(options);
+                canvases.forEach(canvas => {
+                    const smiles = canvas.getAttribute('data-smiles');
+                    if (smiles) {
+                        try {
+                            drawer.draw(smiles, canvas, 'dark');
+                        } catch(e) { console.error(e); }
+                    }
+                });
+            } else if (SmilesDrawer.Drawer) {
+                const drawer = new SmilesDrawer.Drawer(options);
+                canvases.forEach(canvas => {
+                    const smiles = canvas.getAttribute('data-smiles');
+                    if (smiles) {
+                        SmilesDrawer.parse(smiles, function(tree) {
+                            drawer.draw(tree, canvas, 'dark', false);
+                        }, function(err) { console.error(err); });
+                    }
+                });
+            } else if (SmilesDrawer.apply) {
+                SmilesDrawer.apply(options, 'canvas.chem-canvas', 'dark');
+            }
+        }
       }, 50);
     }
   },

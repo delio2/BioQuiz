@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>SmilesDrawer Test</title>
+    <script src="https://unpkg.com/smiles-drawer@2.1.8/dist/smiles-drawer.min.js"></script>
+</head>
+<body>
+    <canvas id="my-canvas" width="250" height="150" class="chem-canvas" data-smiles="[O-]C(=O)CCC(=O)[O-]"></canvas>
+    <script>
+        console.log("Keys in SmilesDrawer:", Object.keys(SmilesDrawer));
+        try {
+            let smilesDrawer = new SmilesDrawer.Drawer({ width: 250, height: 150 });
+            SmilesDrawer.parse('[O-]C(=O)CCC(=O)[O-]', function(tree) {
+                smilesDrawer.draw(tree, 'my-canvas', 'dark', false);
+                console.log("Successfully drew using parse and draw!");
+            });
+        } catch(e) {
+            console.error("Error with Drawer/parse:", e.message);
+            try {
+                let smiDrawer = new SmilesDrawer.SmiDrawer({ width: 250, height: 150 });
+                smiDrawer.draw('[O-]C(=O)CCC(=O)[O-]', 'my-canvas', 'dark');
+                console.log("Successfully drew using SmiDrawer!");
+            } catch(e2) {
+                console.error("Error with SmiDrawer:", e2.message);
+            }
+        }
+    </script>
+</body>
+</html>

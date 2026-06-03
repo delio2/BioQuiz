@@ -3,6 +3,8 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Bugfix (SMILES API):** Risolto il problema delle formule chimiche vuote. Il link CDN `unpkg` della libreria SmilesDrawer restituiva un errore 404 (Not Found). Sostituito con `jsDelivr`.
+- **Bugfix (SMILES Drawer):** Aggiornato il blocco di rendering `ui.js` per gestire correttamente le API di SmilesDrawer v2.x (`Drawer.parse` e `SmiDrawer`) in sostituzione della funzione obsoleta `apply()`.
 - **Quiz Grafici (Molecole):** Implementato il supporto per strutture chimiche vettoriali tramite notazione SMILES. Aggiunta libreria *SmilesDrawer* (~90kb). Le molecole vengono renderizzate istantaneamente come SVG/Canvas responsive. Creata sintassi speciale `[REACTION] ... [/REACTION]`.
 - **UI:** Aggiunto pulsante "Test Grafici Sperimentali" nella Home. Le reazioni usano Flexbox per adattarsi agli schermi degli smartphone senza rompere il layout.
 - **UI:** Aggiunta la visualizzazione della versione dell'app (v1.1.0) in fondo alla schermata Home.
