@@ -3,6 +3,19 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Compressione Database Domande (formato compatto auto-espandente)**:
+  - Riscritto `js/defaultQuestions.js` in formato compatto: dati raggruppati per PDF (`{p, m, q:[{d, o, r, s}]}`) ed espansi a runtime nel formato completo che l'app già usa. **Nessuna modifica a `app.js`, `ui.js`, `quizLogic.js`** (importano sempre `defaultQuestions`).
+  - Gli `id` (q_001…q_269) sono ora generati automaticamente in ordine; `modulo` e `pdf_origine` scritti una sola volta per gruppo.
+  - Riduzione: da 3.769 a 296 righe (−93% righe, −34% byte). Verificato round-trip: i 269 oggetti espansi sono identici ai precedenti (stessi id/ordine/contenuti) e l'app carica correttamente nel browser.
+  - **Eliminato `data/questions.json`** (file orfano, non referenziato da alcun codice): ora c'è un'unica fonte di verità, niente più sincronizzazione manuale.
+  - Bump Service Worker `bioquiz-v16` → `bioquiz-v17` per invalidare la cache.
+- **Aumento Difficoltà Distrattori — PDF 01 (Metabolismo Terminale)**:
+  - Riscritti i 3 distrattori di tutte le 60 domande del PDF `01_Metabolismo_Terminale.pdf` (q_001–q_060).
+  - Risposte corrette lasciate **intatte** (verificato: 0 corrette modificate, testo identico all'originale).
+  - Distrattori ora plausibili e di livello universitario: enzimi/metaboliti/meccanismi reali ma errati nel contesto specifico, tematicamente coerenti con la risposta corretta.
+  - Lunghezze riequilibrate: la corretta non è più sistematicamente la più lunga (da ~60/60 a 27/60, con scarti residui contenuti).
+  - Rimosse tutte le parole-spia ("solo", "soltanto", "esclusivamente", "unicamente", "sempre", "mai") dai distrattori.
+  - Sincronizzate le stesse modifiche in `data/questions.json` per evitare divergenze tra le due fonti dati.
 - **Refactoring Difficoltà Risposte (questions.json)**:
   - Riscritte le opzioni errate di 245 domande su 269 (91%) per aumentare significativamente la difficoltà.
   - Le risposte sbagliate ora sono scientificamente plausibili e nello stesso dominio tematico della risposta corretta.
