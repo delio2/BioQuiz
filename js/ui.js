@@ -48,13 +48,14 @@ export const ui = {
         };
         const canvases = this.container.querySelectorAll('canvas.chem-canvas');
         if (canvases.length > 0) {
+            const currentTheme = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             if (SmilesDrawer.SmiDrawer) {
                 const drawer = new SmilesDrawer.SmiDrawer(options);
                 canvases.forEach(canvas => {
                     const smiles = canvas.getAttribute('data-smiles');
                     if (smiles) {
                         try {
-                            drawer.draw(smiles, canvas, 'dark');
+                            drawer.draw(smiles, canvas, currentTheme);
                         } catch(e) { console.error(e); }
                     }
                 });
@@ -64,12 +65,12 @@ export const ui = {
                     const smiles = canvas.getAttribute('data-smiles');
                     if (smiles) {
                         SmilesDrawer.parse(smiles, function(tree) {
-                            drawer.draw(tree, canvas, 'dark', false);
+                            drawer.draw(tree, canvas, currentTheme, false);
                         }, function(err) { console.error(err); });
                     }
                 });
             } else if (SmilesDrawer.apply) {
-                SmilesDrawer.apply(options, 'canvas.chem-canvas', 'dark');
+                SmilesDrawer.apply(options, 'canvas.chem-canvas', currentTheme);
             }
         }
       }, 50);
