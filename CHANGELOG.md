@@ -3,6 +3,9 @@
 Tutte le modifiche al progetto verranno documentate in questo file.
 
 ## [Unreleased]
+- **Service Worker (PWA):** Corretto un bug critico in `sw.js` che impediva l'installazione della PWA per il caching offline. La lista `urlsToCache` tentava di caricare `icon-192x192.png` e `icon-512x512.png` (non presenti) causando il fallimento dell'intero blocco di caching. Sostituiti con `icon.svg`.
+- **Navigazione:** Rimossa la doppia associazione dell'evento click sul pulsante "Indietro" nella vista `goAnalytics` (causava l'esecuzione doppia di `goHome`).
+- **Statistiche:** Corretto il conteggio delle "Domande Fatte" a fine sessione. Ora vengono conteggiate solo le domande a cui si è effettivamente risposto, invece del numero totale di domande generate nella sessione.
 - **Compressione Database Domande (formato compatto auto-espandente)**:
   - Riscritto `js/defaultQuestions.js` in formato compatto: dati raggruppati per PDF (`{p, m, q:[{d, o, r, s}]}`) ed espansi a runtime nel formato completo che l'app già usa. **Nessuna modifica a `app.js`, `ui.js`, `quizLogic.js`** (importano sempre `defaultQuestions`).
   - Gli `id` (q_001…q_269) sono ora generati automaticamente in ordine; `modulo` e `pdf_origine` scritti una sola volta per gruppo.

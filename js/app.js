@@ -151,7 +151,6 @@ function goAnalytics() {
   ui.showAnalyticsDashboard(history, pdfStats);
   
   document.getElementById('btn-back-nav').style.display = 'block';
-  document.getElementById('btn-back-nav').onclick = goHome;
 }
 
 function goStudyConfig() {
@@ -427,11 +426,12 @@ function finishSession() {
   
   document.getElementById('btn-back-nav').style.display = 'none';
 
+  const answeredCount = appState.answers.filter(a => a !== null && a.selectedIndex !== undefined).length;
   appState.correctCount = appState.answers.filter(a => a !== null && a.selectedIndex === a.correctIndex).length;
 
   if (appState.mode === 'exam') {
     const stats = quizLogic.calculateExamResults(appState.answers, appState.questions.length);
-    storage.updateStats(stats.passed, appState.questions.length);
+    storage.updateStats(stats.passed, answeredCount);
     
     storage.addExamToHistory({
       finalGrade30: stats.finalGrade30,
@@ -442,7 +442,7 @@ function finishSession() {
     appState.currentView = 'examResults';
     appState.lastStats = stats;
   } else {
-    storage.updateStats(null, appState.questions.length);
+    storage.updateStats(null, answeredCount);
     appState.currentView = 'studyResults';
   }
   

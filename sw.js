@@ -9,8 +9,7 @@ const urlsToCache = [
   './js/storage.js',
   './js/defaultQuestions.js',
   './manifest.json',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png',
+  './icons/icon.svg',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
